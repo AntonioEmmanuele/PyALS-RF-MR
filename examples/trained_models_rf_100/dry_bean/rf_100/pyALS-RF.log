@@ -1,0 +1,150 @@
+2025-10-18 18:21:28,195 - pyALS-RF - INFO: Performing learning with automatic hyperparamiter tuning
+	clf: rf
+	tuning: grid
+	dataset: /home/user/shared/Datasets/dry_bean/drybean.csv
+	hyp_dataset: None
+	test_dataset: None
+	configfile: /home/user/shared/Datasets/dry_bean/config.json
+	outputdir: /home/user/shared/trained_big/dry_bean/rf_100
+	fraction: 0.5
+
+_cpus: 20
+2025-10-18 18:21:28,256 - pyALS-RF - INFO: Read 13611 feature vectors and 13611 labels
+2025-10-18 18:21:28,259 - pyALS-RF - INFO: Training sets is 6805 feature vectors and 6805 labels
+2025-10-18 18:21:28,259 - pyALS-RF - INFO: Testing sets is 6806 feature vectors and 6806 labels
+2025-10-19 12:45:57,067 - pyALS-RF - INFO: Performing learning with automatic hyperparamiter tuning
+	clf: rf
+	tuning: random
+	dataset: /home/user/shared/Datasets/dry_bean/drybean.csv
+	hyp_dataset: None
+	test_dataset: None
+	configfile: /home/user/shared/Datasets/dry_bean/config.json
+	outputdir: /home/user/shared/trained_big/dry_bean/rf_100
+	fraction: 0.5
+
+_cpus: 20
+2025-10-19 12:45:57,134 - pyALS-RF - INFO: Read 13611 feature vectors and 13611 labels
+2025-10-19 12:45:57,138 - pyALS-RF - INFO: Training sets is 6805 feature vectors and 6805 labels
+2025-10-19 12:45:57,138 - pyALS-RF - INFO: Testing sets is 6806 feature vectors and 6806 labels
+2025-10-19 13:02:48,763 - pyALS-RF - INFO: Best parameters:
+-----------------  -------
+min_samples_split  3
+min_samples_leaf   1
+max_depth          20
+criterion          entropy
+ccp_alpha          0
+-----------------  -------
+2025-10-19 13:02:48,765 - pyALS-RF - INFO: DTs Stats.:
+  tree    #nodes    depth
+------  --------  -------
+     0       693       19
+     1       697       20
+     2       649       15
+     3       685       20
+     4       695       20
+     5       663       20
+     6       677       20
+     7       669       16
+     8       715       19
+     9       707       17
+    10       723       18
+    11       691       19
+    12       701       20
+    13       627       17
+    14       753       19
+    15       693       20
+    16       717       18
+    17       647       16
+    18       641       17
+    19       715       20
+    20       721       19
+    21       713       19
+    22       693       18
+    23       637       18
+    24       703       18
+    25       725       15
+    26       719       20
+    27       737       19
+    28       647       20
+    29       683       20
+    30       703       20
+    31       679       20
+    32       717       17
+    33       681       19
+    34       625       20
+    35       667       20
+    36       693       20
+    37       719       19
+    38       647       20
+    39       653       20
+    40       691       19
+    41       693       19
+    42       681       18
+    43       667       18
+    44       725       19
+    45       683       20
+    46       649       18
+    47       677       20
+    48       693       20
+    49       719       20
+    50       657       18
+    51       719       18
+    52       675       18
+    53       699       19
+    54       707       20
+    55       663       17
+    56       653       20
+    57       667       17
+    58       651       20
+    59       729       17
+    60       711       18
+    61       675       20
+    62       689       20
+    63       701       20
+    64       665       17
+    65       669       19
+    66       671       20
+    67       681       20
+    68       687       20
+    69       683       18
+    70       709       18
+    71       679       18
+    72       717       19
+    73       703       19
+    74       693       19
+    75       685       20
+    76       673       20
+    77       667       20
+    78       727       20
+    79       677       17
+    80       713       20
+    81       635       20
+    82       719       17
+    83       681       20
+    84       693       19
+    85       693       17
+    86       635       18
+    87       705       19
+    88       719       19
+    89       665       18
+    90       681       20
+    91       677       19
+    92       665       18
+    93       695       19
+    94       735       20
+    95       679       18
+    96       687       18
+    97       701       18
+    98       703       18
+    99       741       17
+
+2025-10-19 13:02:58,810 - pyALS-RF - INFO: Classification accuracy: 6276/6806*100=92.21275345283574
+2025-10-19 13:02:58,810 - pyALS-RF - INFO: Saving training parameters to /home/user/shared/trained_big/dry_bean/rf_100/best_parameters.json5
+2025-10-19 13:02:58,812 - pyALS-RF - INFO: Exporting the training set to /home/user/shared/trained_big/dry_bean/rf_100/training_set.csv ...
+2025-10-19 13:02:58,904 - pyALS-RF - INFO: Exporting the test set to /home/user/shared/trained_big/dry_bean/rf_100/test_set.csv ...
+2025-10-19 13:02:58,990 - pyALS-RF - INFO: Exporting graphviz draws of learned trees to /home/user/shared/trained_big/dry_bean/rf_100/export ...
+2025-10-19 13:03:29,487 - pyALS-RF - INFO: Dumping to /home/user/shared/trained_big/dry_bean/rf_100/classifier.joblib ...
+2025-10-19 13:03:29,523 - pyALS-RF - INFO: Exporting PMML model to /home/user/shared/trained_big/dry_bean/rf_100/classifier.pmml ...
+2025-10-19 13:03:33,444 - pyALS-RF - INFO: Done PMML export!
+2025-10-19 13:03:33,444 - pyALS-RF - INFO: Plotting prediction error to /home/user/shared/trained_big/dry_bean/rf_100/error_boxplot.pdf
+2025-10-19 13:03:34,015 - pyALS-RF - INFO: Done plotting prediction error!

@@ -1,0 +1,24 @@
+{
+    "separator": ";",
+    "outcome_col": -1,
+    "skip_header": true,
+    "attributes_name" : [
+        "area",
+        "perimeter",
+        "majoraxislength",
+        "minoraxislength",
+        "aspectration",
+        "eccentricity",
+        "convexarea",
+        "equivdiameter",
+        "extent",
+        "solidity",
+        "roundness",
+        "compactness",
+        "shapefactor1",
+        "shapefactor2",
+        "shapefactor3",
+        "shapefactor4"
+    ],
+    "classes_name" : ["SEKER", "BARBUNYA", "BOMBAY", "CALI", "DERMASON", "HOROZ", "SIRA"]
+}

@@ -1,0 +1,652 @@
+#!/usr/bin/python3 
+"""
+Copyright 2021-2023 Salvatore Barone <salvatore.barone@unina.it>
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3 of the License, or any later version.
+
+This is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along with
+RMEncoder; if not, write to the Free Software Foundation, Inc., 51 Franklin
+Street, Fifth Floor, Boston, MA 02110-1301, USA.
+"""
+import click, os, sys, logging
+from multiprocessing import cpu_count
+from src.ctx_factory import set_global_options, store_flow
+from src.Flows.ps_flow import ps_flow, ps_eval, ps_distance, ps_compare, compute_gini_dist
+from src.Flows.grep_flow import grep_flow, redundancy_plot, pruning_into_directions
+from src.Flows.als_flow import als_one_step, als_two_steps
+from src.Flows.combined_flow import full_one_step, full_two_steps
+from src.Flows.debug_flow import hdl_debug_flow, debug_with_scikit, print_model
+from src.ConfigParsers.DtGenConfigParser import *
+from src.hdl_generation import hdl_generation, hdl_resource_usage, dyn_energy_estimation, mr_hdl_generation
+from src.git_updater import git_updater
+from src.Flows.lcor_flow import leaves_correlation_flow, leaves_correlation_flow_2
+from src.Flows.tmr_flow import tmr_flow, mr_mop_flow, mr_heu_flow, mr_additional_eval
+from src.Flows.faultinj_flow import fault_visit, gen_fault_collection, gen_fault_coll_ps,  dump_unfaulted_class_vector, sample_test_set, ps_faultinj_visit #, test_dbs_faulted_inference, test_bns_faulted_inference
+from src.Flows.visit_testing import visit_test, test_classifier_from_indexes, perclass_margin
+
+from src.Flows.pruner_flow import ensemble_pruning_flow
+
+@click.group(chain=True)
+@click.pass_context
+def cli(ctx):
+    ctx.ensure_object(dict)
+    
+@cli.command("ps")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('--mode', type=click.Choice(["rank", "full"]), default = "full")
+@click.option('--alpha', type=float, default = 0.07)
+@click.option('--beta', type=float, default = 0.5)
+@click.option('--gamma', type=float, default = 2)
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def bitwidth(ctx, conf, ncpus, espresso, mode, alpha, beta, gamma, output, verbose):
+    """
+    Performs precision-scaling approximation
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso, "ps")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Performing precision scaling approximation flow"
+                f"\n\tconf: {conf}"
+                f"\n\tuse espresso: {espresso}"
+                f"\n\tevaluation mode: {mode}"
+                f"\n\talpha: {alpha}"
+                f"\n\tbeta: {beta}"
+                f"\n\tgamma: {gamma}"
+                )
+    ps_flow(ctx, mode, alpha, beta, gamma, output)
+    store_flow(ctx)
+    
+@cli.command("als")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('--onestep', is_flag = True, default = False, help = "Enable one-step approximation flow")
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def als(ctx, conf, ncpus, espresso, onestep, output, verbose):
+    """
+    Performs the standard ALS approximation flow
+    """
+    flow = "als-onestep" if onestep else "als-twosteps"
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso, flow)
+    if onestep:
+        als_one_step(ctx)
+    else:
+        als_two_steps(ctx)
+    store_flow(ctx)
+                
+@cli.command("full")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('--onestep', is_flag = True, default = False, help = "Enable one-step approximation flow")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def full(ctx, conf, ncpus, espresso, onestep, verbose):
+    """
+    Performs full approximation, i.e, both precision scaling on features and approximate logic synthesis on boolean functions
+    """
+    flow = "full-onestep" if onestep else "full-twosteps"
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso, flow)
+    if onestep:
+        full_one_step(ctx)
+    else:
+        full_two_steps(ctx)
+    store_flow(ctx)
+        
+@cli.command("grep")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('-f', '--fraction', type = float, default = 0.5, help = "Fraction of the test set to be used as pruning set")
+@click.option('-a', '--approach', required = True, type = click.Choice(["loss", "redundancy"]), help = "Pruning approach (loss-based or redundancy-based).")
+@click.option('-x', '--cost', type = click.Choice(["depth", "activity", "combined"]) , default = "combined", help = "Fraction of the test set to be used as pruning set")
+@click.option('-r', '--minredundancy', type = int, default = 0, help = "Minimum redundancy to be kept")
+@click.option('-m', '--maxloss', type = float, default = 5.0, help = "Maximum allowed accuracy loss")
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def grep(ctx, conf, ncpus, espresso, fraction, approach, cost, minredundancy, maxloss, output, verbose):
+    """
+    Performs the Global Redundancy Reduction for Enseble Pruning approximation approach.
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso, "pruning")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Performing hedge trimming"
+                f"\n\tconf: {conf}"
+                f"\n\tuse espresso: {espresso}"
+                f"\n\tpruning fraction: {fraction}"
+                f"\n\tpruning approach: {approach}"
+                f"\n\tcost criterion: {cost}"
+                f"\n\tmin. redundancy: {minredundancy}"
+                f"\n\tmax. loss: {maxloss}"
+                f"\n\toutput dir: {output}"
+                )
+    grep_flow(ctx, fraction, approach, cost, minredundancy, maxloss, output)
+    store_flow(ctx)
+    
+    
+@cli.command("lcor")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-f', '--fraction', type = float, default = 0.5, help = "Fraction of the test set to be used as pruning set")
+@click.option('-l', '--maxloss_lb', type = float, default = 5.0, help = "Lower bound of the maximum accuracy loss")
+@click.option('-u', '--maxloss_ub', type = float, default = 0.0, help = "Upper bound of the maximum accuracy loss")
+@click.option('-s', '--loss_step', type = float, default = 0.5, help = "Step used for accuracy loss iteration from LB to UB")
+@click.option('-r', '--report', type = bool, default = True , help = "Enables the generation of a CSV file containing the report")
+@click.pass_context
+def lcor(ctx, conf, ncpus, output, verbose, fraction, maxloss_lb, maxloss_ub, loss_step, report):
+    assert maxloss_ub == 0.0 or maxloss_ub >= maxloss_lb 
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False,"pruning")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Leaves correlation pruning flow"
+                f"\n\tconf: {conf}"
+                f"\n\toutput dir: {output}"
+                )
+    logger.info(f"Starting with Nro CPU: {ncpus}"
+                f"\n\t  Max Loss LB: {maxloss_lb}"
+                f"\n\t  Max Loss UB: {maxloss_ub}"
+                f"\n\t  Loss step: {loss_step}"
+                f"\n\t  Fraction of Dataset {fraction}")
+    if maxloss_ub == 0.0: # if no step is provided.
+        maxloss_ub = maxloss_lb
+    leaves_correlation_flow(ctx, output, fraction, maxloss_lb, maxloss_ub,loss_step, ncpus, report)
+    #store_flow(ctx)
+
+
+@cli.command("lcor_ax")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-f', '--pruning_fraction', type = float, default = 0.5, help = "Fraction of the test set to be used as pruning set")
+@click.option('-k', '--validation_fraction', type = float, default = 0.5, help = "Fraction of the pruning set to be used as validation set")
+@click.option('-l', '--maxloss', type = float, default = 5.0, help = "Maximum_loss")
+@click.option('-r', '--report_path', type = str, default = True , help = "Out folder for the report configuration.")
+@click.option('-p', '--pruning_path', type = str, default = True , help = "Out folder for the pruning configuration.")
+@click.pass_context
+def lcor_ax(ctx, conf, ncpus, verbose, pruning_fraction, validation_fraction, maxloss, report_path, pruning_path):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False,"pruning")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Leaves correlation pruning flow"
+                f"\n\tconf: {conf}"
+                f"\n\tverbose: {verbose}"
+                f"\n\tpruning_fraction: {pruning_fraction}"
+                f"\n\tpruning_fraction: {validation_fraction}"
+                f"\n\tmax loss: {maxloss}"
+                f"\n\treport path: {report_path}"
+                f"\n\tpruning path: {pruning_path}"
+                )
+    leaves_correlation_flow_2(ctx, fraction=pruning_fraction, fraction_validation=validation_fraction, max_loss=maxloss, ncpus=ncpus,report_path=report_path, pruning_path=pruning_path)
+
+    
+@cli.command("tmr")
+@click.option('-m', '--moo', type = bool, default =False, help = "Set the MR optimization as a MOO optimization problem.")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-f', '--fraction', type = float, default = None, help = "Fraction of the test set to be used as pruning set")
+@click.option('-k', '--k_mr', type = int, default = 3, help = "Order k of modular redundancy for the heuristic.")
+@click.option('-r', '--report', type = bool, default = True , help = "Enables the generation of a CSV file containing the report")
+@click.option('-i', '--it', type = int, default = 0 , help = "Experiment iteration")
+@click.option('-t', '--test_samples', type = int, default = 0 , help = "Number of test samples used from the validation after the split. Test set is first splitted and then test_samples are taken.")
+@click.option('-n', '--report_name', type = str, default = None , help = "Name used for the report file.")
+@click.option('--alpha', type=float, default = 0.07)
+@click.option('--beta', type=float, default = 0.5)
+@click.option('--gamma', type=float, default = 2)
+@click.pass_context
+def tmr(ctx, moo, conf, ncpus, output, verbose, fraction, k_mr, report, it, test_samples, report_name, alpha, beta, gamma):
+    if moo :
+        set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "MR_MOO")
+    else:
+        set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "MR")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("MR pruning flow"
+                f"\n\tconf: {conf}"
+                f"\n\toutput dir: {output}"
+                )
+    logger.info(f"Using MOO: {moo}")
+    logger.info(f"Starting with Nro CPU: {ncpus}"
+                f"\n\t  Outdir: {output}"
+                f"\n\t  Fraction of Dataset {fraction}"
+                f"\n\t  report enabled {test_samples}"
+                f"\n\t  report enabled {report}"
+                f"\n\t  iteration {it}"
+                )
+    if moo:
+        mr_mop_flow(ctx, alpha, beta, gamma, output, ncpus, fraction)
+    else:
+        tmr_flow(ctx, output, fraction, ncpus, report, it, test_samples, k_mr, report_name)
+        
+@cli.command("mr_heu")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-i', '--in_pruning', type=click.Path(dir_okay=True), default = None, help = "Path of an input pruning configuration to prune the model before applying the heuristic.")
+@click.option('-q', '--quantization_type', type=str, default = None, help = "Use int16 for 16 bit quantization. Otherwise use None.")
+@click.option('-r', '--ranking_method', type = click.Choice(["pertree_acc_heu", "pertree_margin_heu"]), default = "pertree_acc_heu", help = "This parameter is used to control the ranking procedure of DTs during MR heuristic.")
+@click.option('-f', '--fraction', type = float, default = None, help = "Fraction of the test set to be used as XAxC set. Note that if None the Levegue formula is used.")
+@click.option('-m', '--mr_order', type = int, default = 3, help = "Order k of modular redundancy for the heuristic.")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-p', '--pruning_dir', type=click.Path(dir_okay=True), default = "./", help = "Path were the pruning cfg is saved. Note that this folder may be different that the one of the csv dir.")
+@click.option('-d', '--csv_dir', type=click.Path(dir_okay=True), default = "./", help = "Path were the CSV report is saved.")
+@click.pass_context
+def mr_heu(ctx, conf, verbose, in_pruning, quantization_type, ranking_method, fraction, mr_order, ncpus, pruning_dir, csv_dir):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "MR_HEU")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("MR-HEU pruning flow"
+                f"\n\tconf: {conf}"
+                f"\n\tin_prunig: {in_pruning}"
+                f"\n\tpruning_cfg dir: {pruning_dir}"
+                f"\n\tcsv dir: {csv_dir}"
+                f"\n\tFraction : {fraction}"
+                f"\n\tMr Order : {mr_order}"
+                f"\n\tNCPUS : {ncpus}"
+                )
+    mr_heu_flow(ctx, quantization_type, in_pruning, ranking_method, fraction, mr_order, ncpus, pruning_dir, csv_dir)
+
+@cli.command("ensemble_pruning")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-m', '--method', type = str, default = "MeanD-M", help = "Ensemble pruning method used [MeanD-M MinD-M]")
+@click.option('-f', '--fraction', type = float, default = 0.5, help = "Fraction of the test set to be used as XAxC set. Note that if None the Levegue formula is used.")
+@click.option('-n', '--n_trees', type = int, default = 3, help = "Number of trees to keep in the ensemble.")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-p', '--pruning_dir', type=click.Path(dir_okay=True), default = "./", help = "Path were the pruning cfg is saved. Note that this folder may be different that the one of the csv dir.")
+@click.option('-d', '--csv_dir', type=click.Path(dir_okay=True), default = "./", help = "Path were the CSV report is saved.")
+@click.pass_context
+def ensemble_pruning(ctx, conf, verbose, method,fraction, n_trees, ncpus, pruning_dir, csv_dir):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "MR_HEU")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("MR-HEU pruning flow"
+                f"\n\tconf: {conf}"
+                f"\n\tpruning_cfg dir: {pruning_dir}"
+                f"\n\tcsv dir: {csv_dir}"
+                f"\n\tFraction : {fraction}"
+                f"\n\tNum Trees : {n_trees}"
+                f"\n\tNCPUS : {ncpus}"
+                )
+    ensemble_pruning_flow(ctx, method, fraction, n_trees, ncpus, csv_dir, pruning_dir)
+
+
+
+@cli.command("reduplot")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def reduplot(ctx, conf, ncpus, output, verbose):
+    """
+    Plots the redundancy of a classfier
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False)
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Plotting redundancy and error of the classifier"
+                f"\n\tconf: {conf}"
+                f"\n\toutput dir: {output}"
+                )
+    redundancy_plot(ctx, output)
+    
+@cli.command("genhdl")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('-l', '--luts', type = int, default = None, help = "Number of inputs for look-up tables. If specified, it enables the embedded LUT-mapper exploiting AMD/Xilinx LUT primitives.")
+@click.option('-s', '--skip_exact', is_flag = True, help = "Skip generating the exact (non approximate) implementation")
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-r', '--report', type = bool, default = True , help = "Enables the generation of a CSV file containing the report")
+@click.option('-p', '--pruning_name',  default = None , help = "Overrides the name of the pruning configuration into the output dir.")
+@click.pass_context
+def generate_hdl(ctx, conf, ncpus, espresso, luts, skip_exact, output, verbose, report, pruning_name):
+    """
+    Generates HDL implementations for a given classifier, including its approximate variants, if any.
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso)
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Performing HDL generation"
+                f"\n\tconf: {conf}"
+                f"\n\tuse espresso: {espresso}"
+                f"\n\tLUT tech: {luts}"
+                f"\n\tskip non-approximate: {skip_exact}"
+                f"\n\toutput dir: {output}"
+                f"\n\tpruning name: {pruning_name}"
+                )
+    hdl_generation(ctx, luts, skip_exact, output, pruning_name)
+    
+@cli.command("generate_mr_hdl")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--espresso', is_flag = True, help = "Enable the Espresso heuristic logic minimizer for implementing Boolean Networks")
+@click.option('-l', '--luts', type = int, default = None, help = "Number of inputs for look-up tables. If specified, it enables the embedded LUT-mapper exploiting AMD/Xilinx LUT primitives.")
+@click.option('-q', '--quantization_type', type=str, default = None, help = "Use int16 for 16 bit quantization. Otherwise use None.")
+@click.option('-s', '--skip_exact', is_flag = True, help = "Skip generating the exact (non approximate) implementation")
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-r', '--report', type = bool, default = True , help = "Enables the generation of a CSV file containing the report")
+@click.option('-p', '--pruning_conf',  default = None , help = "Overrides the name of the pruning configuration into the output dir.")
+@click.option('-a', '--approximate_configuration',  default = None , help = "Input approximate configuration for MR")
+@click.pass_context
+def generate_mr_hdl(ctx, conf, ncpus, espresso, luts, quantization_type, skip_exact, output, verbose, report, pruning_conf, approximate_configuration):
+    """
+    Generates MRHDL implementations for a given classifier, including its MR approximate variants.
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, espresso)
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Performing HDL generation"
+                f"\n\tconf: {conf}"
+                f"\n\tuse espresso: {espresso}"
+                f"\n\tLUT tech: {luts}"
+                f"\n\tskip non-approximate: {skip_exact}"
+                f"\n\toutput dir: {output}"
+                f"\n\tpruning name: {pruning_conf}"
+                )
+    mr_hdl_generation(ctx, luts, quantization_type, skip_exact, output, report, pruning_conf, approximate_configuration)
+
+@cli.command("debug")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-o', '--output', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def debug_model(ctx, conf, ncpus, output, verbose):
+    """
+    Tests the pyALS-RF model against the scikit one.
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False)
+    debug_with_scikit(ctx, output)
+
+@cli.command("hdl-debug")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-i', '--index', type = int, help = "Index of the test data to dump")
+@click.option('-a', '--axflow', type = click.Choice(["none", "pruning", "ps", "als", "full"]), help = "Approximation flow")
+@click.option('-r', '--results', type = click.Path(dir_okay=True), default = None, help = "Overriden output directory")
+@click.option('-v', '--variant', type = int, default = None, help = "Variant")
+@click.option('-o', '--output', type = click.Path(dir_okay=False), default = None, help = "Output file")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def debug_hdl(ctx, conf, ncpus, index, axflow, results, variant, output, verbose):
+    """
+    Dumps the output signals for HDL debugging purpose
+    """
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False)
+    hdl_debug_flow(ctx, index, axflow, results, variant, output)
+    
+@cli.command("dump")
+@click.option('-d', '--dumpfile', type = click.Path(dir_okay=False), default = None, help = "dump file")
+@click.option('-p', '--pmml', type = click.Path(dir_okay=False), default = None, help = "PMML file")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def debug_hdl(ctx, dumpfile, pmml, verbose):
+    """
+    Dumps the model
+    """
+    print_model(dumpfile, pmml)
+
+@cli.command("eval")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-a', '--approach', type=click.Choice(["ps", "als", "full"]))
+@click.option('-m', '--mode', type = click.Choice(["whole", "split"]))
+@click.option('-n', '--nabs', type = str, required = True)
+@click.pass_context
+def eval(ctx, conf, approach, mode, nabs):
+    if approach == "ps":
+        ps_eval(conf, nabs)
+    else:
+        print("Not supported yet")
+        exit()
+        
+@cli.command("distance")
+@click.argument('configfile', type=click.Path(exists=True, dir_okay=False))
+@click.argument('axapproach', type=click.Choice(["ps", "als", "full"]))
+@click.option('--pareto', type = click.Path(exists=True, dir_okay=False), default = None)
+@click.option('--axmode', type = click.Choice(["whole", "split"]))
+@click.pass_context
+def distance(configfile, axapproach, pareto, axmode):
+    if axapproach == "ps":
+        ps_distance(configfile, pareto)
+    else:
+        print("Not supported yet")
+        exit()
+
+@cli.command("compare")
+@click.argument('configfile', type=click.Path(exists=True, dir_okay=False))
+@click.argument('axapproach', type=click.Choice(["ps", "als", "full"]))
+@click.argument('outdir', type=click.Path(exists=True, dir_okay=True))
+@click.option('--pareto', type = click.Path(exists=True, dir_okay=False), default = None)
+@click.option('--axmode', type = click.Choice(["whole", "split"]))
+@click.option('--alpha', type=float, default = 0.07)
+@click.option('--beta', type=float, default = 0.5)
+@click.option('--gamma', type=float, default = 2)
+@click.option('--maxloss', type=float, default = 5)
+@click.option('--neval', type = int, default = None)
+@click.pass_context
+def compare(configfile, axapproach, outdir, pareto, axmode, alpha, beta, gamma, maxloss, neval):
+    if axapproach == "ps":
+        ps_compare(configfile, outdir, pareto, alpha, beta, gamma, maxloss, neval)
+    else:
+        print("Not supported yet")
+        exit()
+
+@cli.command("distgini")
+@click.argument('configfile', type=click.Path(exists=True, dir_okay=False))
+@click.argument('outdir', type=click.Path(exists=True, dir_okay=True))
+@click.pass_context
+def compgini(configfile, outdir):
+    compute_gini_dist(configfile, outdir)
+
+
+
+@cli.command("fault_injection_visit")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-g', '--grep_pruning_configuration', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON GREP pruning configuration file of the classifier")
+@click.option('-p', '--ps_index', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON index for the PS visit")
+@click.option('-f', '--input_faults', type=click.Path(exists=True, dir_okay=True), default = None, help = "Input faults ")
+@click.option('-t', '--xtest', type=click.Path(exists=True, dir_okay=False), default = None, help = "Indexes of X_test vectors")
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = None, help = "Output directory.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def fault_injection_visit(ctx, conf, grep_pruning_configuration, ps_index, input_faults, xtest, out, verbose, ncpus):#, outdir):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "faultinj")
+    if ps_index is not None:
+        ps_faultinj_visit(ctx, out, ps_index, input_faults, xtest, ncpus, 50)
+    else:
+        fault_visit(ctx = ctx, pruning_cfg = grep_pruning_configuration, input_faults = input_faults, samples_idx = xtest, output = out, ncpus = ncpus)
+    #test_dbs_faulted_inference(ctx = ctx, conf = conf, input_faults = input_faults)
+    #test_bns_faulted_inference(ctx = ctx, conf = conf, input_faults = input_faults)
+
+@cli.command("gen_class_vectors")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-t', '--test_idx', type=click.Path(exists=True, dir_okay=True), default = None, help = f"Path of file containing the indexes used during tests")
+@click.option('-p', '--pruning_conf',  type=click.Path(exists=True, dir_okay=True), default = None, help = f"Path of the pruning configuration")
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = None, help = "Output directory.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def gen_class_vectors(ctx, conf, test_idx, pruning_conf, out, verbose, ncpus):#, outdir):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "faultinj")
+    dump_unfaulted_class_vector(ctx = ctx, test_idx = test_idx, pruning_conf = pruning_conf, output = out, ncpus = ncpus)
+
+@cli.command("pruningcfg_into_directions")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-p', '--pruning_conf',  type=click.Path(exists=True, dir_okay=False), default = None, help = f"Path of the pruning configuration")
+# The validation dataset is used to cross-validate the imported model w.r.t. the accellerator. 
+@click.option('-g', '--gen_val_set',  type = bool, default = False, help = f" Used to establish if the entire test-set or the test set is used to generate a validation dataset.")
+@click.option('-t', '--val_idx', type=click.Path(exists=True, dir_okay=True), default = None, help = f"Path of file containing the indexes used during validation")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = None, help = "Output directory for the directions and output..")
+@click.pass_context
+def pruningcfg_into_directions(ctx, conf, pruning_conf, gen_val_set,  val_idx, verbose, ncpus, out):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "pruning_into_universal")
+    pruning_into_directions(ctx, pruning_conf, gen_val_set, val_idx, ncpus, out)
+    
+
+@cli.command("gen_fault_coll")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-g', '--grep_pruning_configuration', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON GREP pruning configuration file of the classifier")
+@click.option('-a', '--archive_nab', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON path of the Final Archive of the classifier.")
+@click.option('-i', '--val_idx', type = click.Path(exists=False, dir_okay=False), default = None, help = "Path of the validation indexes, valid only for NAB (PS) ")
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = "./", help = "Output directory of the fault configurations.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-w', '--working_mode', type = int, default = 0, help = "Sample fault sites for the entire universe or from single different fault universes.")
+@click.option('-e', '--error_margin', type = float, default = 0.01, help = " Error margin in the Leveugle formula.")
+@click.option('-p', '--individual_prob', type = float, default = 0.5, help = " Individual probability in the Leveugle formula.")
+@click.option('-t', '--confidence_level', type = float, default = 0.95, help = " Confidence level used to compute the cut off from N-dist in the Leveugle formula.")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def gen_fault_coll(ctx, conf, grep_pruning_configuration, archive_nab, val_idx, out, verbose, working_mode, error_margin, individual_prob, confidence_level, ncpus):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "faultinj")
+    assert not (archive_nab != None and grep_pruning_configuration != None), "Not supported mode, select only one approximate configuration"
+    if archive_nab is None:
+        gen_fault_collection(ctx, pruning_cfg = grep_pruning_configuration, working_mode = working_mode, error_margin = error_margin, confidence_level = confidence_level, individual_prob = individual_prob, out_dir = out, ncpus = ncpus)
+    else:
+        gen_fault_coll_ps(ctx, archive_nab, val_idx, working_mode, error_margin, confidence_level, individual_prob, out, ncpus)    
+
+@cli.command("gen_xtest_coll")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-p', '--perc', type=float, default = None, help = "Percentage of test set to sample. If defined num parameter is ignored.")
+@click.option('-n', '--num', type=int, default = 50, help = "Number of test set samples")
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = "./", help = "Output directory of the fault configurations.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def gen_xtest_coll(ctx, conf, perc, num,  out, verbose, ncpus):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "xtest_sample")
+    sample_test_set(ctx, perc, num,  out,  ncpus)
+
+@cli.command("test_visit")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-p', '--ps_dir', type=click.Path(exists=True, dir_okay=False), default = None, help = "File containing the final_archiver")
+@click.option('-a', '--accuracy_validation', type=click.Path(exists=True, dir_okay=False), default = None, help = "File containing the validation test indexes for validating accuracy.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def test_visit(ctx, conf, ps_dir, accuracy_validation, verbose, ncpus):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "visiting_testing")
+    visit_test(ctx, ps_dir, accuracy_validation)
+
+@cli.command("hdl_res_usage")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--comp_type', type=str, default = "comp64", required = True,  help = "Type of comparator used for the synthesis.")
+@click.option('-p', '--ps_path', type=click.Path(exists=True, dir_okay=False), default = None, help = "Path of the PS final_archive")
+@click.option('-g', '--pruning_path', type=click.Path(exists=True, dir_okay=False), default = None, help = "Path of the Pruning Cfg")
+@click.option('-o', '--out_path', type=click.Path(exists=False, dir_okay=False), default = None, help = "OutPath of the resource usage report.")
+@click.option('-d', '--dataset_name', type=str, default = "NoDSProvided", help = "Name of the dataset used.")
+@click.option('-n', '--number_trees', type=int, default = 5, help = "Number of trees used in the ensemble.")
+@click.option('-m', '--mr_order', type=int, default = 0, help = "Redundancy order used.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def hdl_res_usage(ctx, conf, comp_type, ps_path, pruning_path, out_path, dataset_name, number_trees, mr_order, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, 1, False, "visiting_testing")
+    hdl_resource_usage(ctx, comp_type=comp_type, pruning_cfg_path=pruning_path, ps_set_configuration_path=ps_path, report_path=out_path, dataset_name=dataset_name, number_trees=number_trees, mr_order=mr_order)
+
+@cli.command("eval_energy")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--comp_type', type=str, default = "comp64", required = True,  help = "Type of comparator used for the synthesis.")
+@click.option('-p', '--ps_path', type=click.Path(exists=True, dir_okay=False), default = None, help = "Path of the PS final_archive")
+@click.option('-g', '--pruning_path', type=click.Path(exists=True, dir_okay=False), default = None, help = "Path of the Pruning Cfg")
+@click.option('-o', '--out_path', type=click.Path(exists=False, dir_okay=False), default = None, help = "OutPath of the resource usage report.")
+@click.option('-d', '--dataset_name', type=str, default = "NoDSProvided", help = "Name of the dataset used.")
+@click.option('-n', '--number_trees', type=int, default = 5, help = "Number of trees used in the ensemble.")
+@click.option('-m', '--mr_order', type=int, default = 0, help = "Redundancy order used.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def eval_energy(ctx, conf, comp_type,  ps_path, pruning_path, out_path, dataset_name, number_trees, mr_order, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, 1, False, "visiting_testing")
+    dyn_energy_estimation(ctx, comp_type = comp_type, pruning_cfg_path=pruning_path, ps_set_configuration_path=ps_path, report_path=out_path, dataset_name=dataset_name, number_trees=number_trees, mr_order=mr_order)
+
+@cli.command("eval_test")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--quantization_type', type=str, default = None)
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-t', '--test_set_indexes', type=click.Path(exists=True, dir_okay=False), default = None, help = "TXT containing the indexes of the test set to use")
+@click.option('-o', '--outpath', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def eval_test(ctx, conf, quantization_type, ncpus, test_set_indexes, outpath, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "eval_test_ind")
+    test_classifier_from_indexes(ctx, quantization_type, ncpus=ncpus, indexes_path=test_set_indexes, outpath=outpath)
+    
+@cli.command("eval_perclass_margin")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--quantization_type', type=str, default = None)
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-t', '--test_set_indexes', type=click.Path(exists=True, dir_okay=False), default = None, help = "TXT containing the indexes of the test set to use")
+@click.option('-o', '--outpath', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def eval_perclass_margin(ctx, conf, quantization_type, ncpus, test_set_indexes, outpath, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "eval_test_ind")
+    perclass_margin(ctx, quantization_type, ncpus=ncpus, indexes_path=test_set_indexes, outpath=outpath)
+   
+@cli.command("mr_additional_estimations")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--quantization_type', type=str, default = None, help="Quantization Type used for internal threshold")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-e', '--exp_path', type=str, required=True, help= "Path in which the experiments for a specific dataset were exectured")
+
+@click.option('-k', '--subpath_k', type=str, default="mr_", help= "Subpath format for the modular redundancy order experiments, performed for the same dataset.")
+@click.option('-r', '--subpath_rep', type=str, default="cfg_", help= "Subpath in which a specific configuration of experiment, was executed. For instance, mr_11/cfg_1, Experiments with Modular Redundancy 11, cfg 1, first repetition")
+
+@click.option('-l', '--k_lb', type=int, default=3, help = "Lower Bound of the redundancy order for which the experiments were performed")
+@click.option('-u', '--k_ub', type=int, default=19, help = "Upper Bound for which the experiments were performed")
+@click.option('-s', '--k_step', type=int, default=2, help = "Step for which the experiments varying MR order k were executed.")
+@click.option('-n', '--nreps', type=int, default=30, help = "Number of repetitions for each experiment with a fixed modular redundancy order.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def mr_additional_estimations(ctx, conf, quantization_type, ncpus, exp_path, subpath_k, subpath_rep, k_lb, k_ub, k_step, nreps, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "eval_test_ind")
+    mr_additional_eval(ctx, quantization_type, ncpus, exp_path, subpath_k, subpath_rep, k_lb, k_ub, k_step, nreps)
+    
+
+cli.add_command(bitwidth)
+cli.add_command(als)
+cli.add_command(full)
+cli.add_command(grep)
+cli.add_command(tmr)
+cli.add_command(mr_heu)
+cli.add_command(lcor)
+cli.add_command(lcor_ax)
+cli.add_command(generate_hdl)
+cli.add_command(debug_model)
+cli.add_command(debug_hdl)
+cli.add_command(eval)
+cli.add_command(distance)
+cli.add_command(compare)
+cli.add_command(compgini)
+cli.add_command(fault_injection_visit)
+cli.add_command(gen_fault_coll)
+cli.add_command(gen_class_vectors)
+cli.add_command(gen_xtest_coll)
+cli.add_command(test_visit)
+cli.add_command(pruningcfg_into_directions)
+cli.add_command(hdl_res_usage)
+cli.add_command(ensemble_pruning)
+cli.add_command(eval_test)
+cli.add_command(eval_energy)
+cli.add_command(eval_perclass_margin)
+cli.add_command(mr_additional_estimations)
+cli.add_command(generate_mr_hdl)
+
+if __name__ == '__main__':
+    # if git_updater(os.path.dirname(os.path.realpath(__file__))):
+    #     os.execv(sys.argv[0], sys.argv)
+    # else:
+    cli()
+
