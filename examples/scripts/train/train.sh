@@ -21,13 +21,13 @@ datasets[dry_bean]='/home/user/shared/Datasets/dry_bean/drybean.csv'
 configs[dry_bean]='/home/user/shared/Datasets/dry_bean/config.json'
 
 
-pyalsrf='/home/user/pyALS-RF-dbg/train autotune rf random'
+pyalsrf='/home/user/pyALS-RF-dbg/train autotune rf grid'
 curr=$PWD
 for name in ${input_datasets[@]}; do
     for tree in ${trees[@]}; do
         
         dest_dir=/home/user/shared/trained_models/${name}/rf_${tree}
 
-        mkdir -p $dest_dir && cd $dest_dir && $pyalsrf ${datasets[$name]} ${configs[$name]} $dest_dir -n ${tree} -j 20 -f $fraction -i 500 && cd $curr 
+        mkdir -p $dest_dir && cd $dest_dir && $pyalsrf ${datasets[$name]} ${configs[$name]} $dest_dir -n ${tree} -j 20 -f $fraction && cd $curr 
     done
 done
