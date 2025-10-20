@@ -15,7 +15,7 @@ for i in $(seq 1 1); do
             for name in ${input_datasets[@]}; do # For each input dataset, i.e. avila, spambase 
                 pruning_directory=/home/user/shared/$outdir/${rk}/${name}/rf_${tree_num}/mr_${mr_order}/cfg_${i}
                 report_directory=/home/user/shared/$outdir/${rk}/${name}/rf_${tree_num}
-                config_director=/home/user/shared/trained_models_q16_test/${name}/rf_${tree_num}/config.json5
+                config_director=/home/user/shared/trained_models_q16/${name}/rf_${tree_num}/config.json5
                 mkdir -p $pruning_directory
                 mkdir -p $report_directory
                 if [[ "$fraction" -eq "0" ]]; then

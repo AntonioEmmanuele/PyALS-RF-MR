@@ -26,7 +26,7 @@ curr=$PWD
 for name in ${input_datasets[@]}; do
     for tree in ${trees[@]}; do
         
-        dest_dir=/home/user/shared/trained_models_q16_test/${name}/rf_${tree}
+        dest_dir=/home/user/shared/trained_models_q16/${name}/rf_${tree}
         # echo $name
         # echo $dest_dir
         # echo ${datasets[$name]}

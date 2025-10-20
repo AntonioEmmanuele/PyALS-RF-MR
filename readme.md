@@ -126,11 +126,11 @@ We provide an already **ready** script, in the `examples/scripts` folders. These
 ./train_q16.sh
 ```
 
-These take as input simply the name of the dataset and produce in output, in the folder `examples/trained_models_test/<dataset_name>/rf_20` and 
+These take as input simply the name of the dataset and produce in output, in the folder `examples/trained_models<dataset_name>/rf_20` and 
 
-`examples/trained_models_q16_test/<dataset_name>/rf_20` the non-quantized and quantized classifiers, respectively.
+`examples/trained_models_q16/<dataset_name>/rf_20` the non-quantized and quantized classifiers, respectively.
 
-For example, the Statlog Segment, quantized at 16 bits, will be in the `examples/trained_models_q16_test/statlog_segment/rf_20`. 
+For example, the Statlog Segment, quantized at 16 bits, will be in the `examples/trained_models_q16/statlog_segment/rf_20`. 
 
 We highlight that these script must be executed **inside the container**. They are under the folder  `shared/scripts/train/train_q16.sh-`
 
@@ -148,7 +148,7 @@ These scripts, take as input the name of the dataset trained, for instance:
 
 By executing this script, **always inside the container**, a json5 file will be generated in model output directory. 
 
-As an example, for the Statlog Segment dataset, the config file will be in `examples/trained_models_q16_test/statlog_segment/rf_20/config.json5`.
+As an example, for the Statlog Segment dataset, the config file will be in `examples/trained_models_q16/statlog_segment/rf_20/config.json5`.
 
 **To easily add a new dataset:**
 - Import it into the `examples/datasets` folder.
@@ -226,7 +226,7 @@ For instance, mr_11/cfg_1 corresponds to the first repetition of the experiment 
 
 Example: 
 ```bash
-./pyals-rf mr_additional_estimations  -c ../shared/trained_models_q16_test/statlog_segment/rf_20/config.json5   -e ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20 -k mr_ -r cfg_ -l 9 -u 9 -s 2 -n 1 -j 20```
+./pyals-rf mr_additional_estimations  -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5   -e ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20 -k mr_ -r cfg_ -l 9 -u 9 -s 2 -n 1 -j 20```
 This script will create, alongside the mr_report.csv file, two new files: `node_counts_report.csv` and `per_class_acc_report.csv`.  
 
 ---
@@ -251,6 +251,6 @@ The command employed the HDL code of an exact and approximate classifier is:
 
 Example: 
 ```bash
-./pyals-rf generate_mr_hdl -c ../shared/trained_models_q16_test/statlog_segment/rf_20/config.json5 -o ../shared/testHDL -q "int16" -p  ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20/cfg_1/pruning_conf.json5 -a ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20/cfg_1/per_class_cfg.json5
+./pyals-rf generate_mr_hdl -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5 -o ../shared/testHDL -q "int16" -p  ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20/cfg_1/pruning_conf.json5 -a ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20/cfg_1/per_class_cfg.json5
 ```
 
