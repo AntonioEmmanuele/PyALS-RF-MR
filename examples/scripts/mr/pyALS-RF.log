@@ -1,0 +1,284 @@
+2025-10-22 21:43:52,260 - pyALS-RF - INFO: MR-HEU pruning flow
+	conf: /home/user/shared/trained_models/dry_bean/rf_20/config.json5
+	in_prunig: None
+	pruning_cfg dir: /home/user/shared/mrq16_exp/pertree_acc_heu/dry_bean/rf_20/mr_9/cfg_1
+	csv dir: /home/user/shared/mrq16_exp/pertree_acc_heu/dry_bean/rf_20
+	Fraction : None
+	Mr Order : 9
+	NCPUS : 8
+2025-10-22 21:43:52,261 - pyALS-RF - INFO: [MR-HEU-FLOW] Running the MR Heuristics flow
+2025-10-22 21:43:52,549 - pyALS-RF - INFO: Tree 0: 339 DBs instantiated.
+2025-10-22 21:43:52,588 - pyALS-RF - INFO: Tree 1: 337 DBs instantiated.
+2025-10-22 21:43:52,624 - pyALS-RF - INFO: Tree 2: 329 DBs instantiated.
+2025-10-22 21:43:52,657 - pyALS-RF - INFO: Tree 3: 298 DBs instantiated.
+2025-10-22 21:43:52,692 - pyALS-RF - INFO: Tree 4: 350 DBs instantiated.
+2025-10-22 21:43:52,729 - pyALS-RF - INFO: Tree 5: 334 DBs instantiated.
+2025-10-22 21:43:52,763 - pyALS-RF - INFO: Tree 6: 310 DBs instantiated.
+2025-10-22 21:43:52,796 - pyALS-RF - INFO: Tree 7: 315 DBs instantiated.
+2025-10-22 21:43:52,830 - pyALS-RF - INFO: Tree 8: 332 DBs instantiated.
+2025-10-22 21:43:52,865 - pyALS-RF - INFO: Tree 9: 319 DBs instantiated.
+2025-10-22 21:43:52,903 - pyALS-RF - INFO: Tree 10: 359 DBs instantiated.
+2025-10-22 21:43:52,941 - pyALS-RF - INFO: Tree 11: 314 DBs instantiated.
+2025-10-22 21:43:52,978 - pyALS-RF - INFO: Tree 12: 352 DBs instantiated.
+2025-10-22 21:43:53,017 - pyALS-RF - INFO: Tree 13: 348 DBs instantiated.
+2025-10-22 21:43:53,056 - pyALS-RF - INFO: Tree 14: 345 DBs instantiated.
+2025-10-22 21:43:53,091 - pyALS-RF - INFO: Tree 15: 309 DBs instantiated.
+2025-10-22 21:43:53,125 - pyALS-RF - INFO: Tree 16: 323 DBs instantiated.
+2025-10-22 21:43:53,160 - pyALS-RF - INFO: Tree 17: 345 DBs instantiated.
+2025-10-22 21:43:53,198 - pyALS-RF - INFO: Tree 18: 338 DBs instantiated.
+2025-10-22 21:43:53,239 - pyALS-RF - INFO: Tree 19: 373 DBs instantiated.
+2025-10-22 21:43:53,296 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrAxC object..
+2025-10-22 21:43:53,296 - pyALS-RF - INFO: [MR-AXC] Initializing the module
+2025-10-22 21:43:53,296 - pyALS-RF - INFO: [MR-AXC] Sampling classess..
+2025-10-22 21:43:53,298 - pyALS-RF - INFO: [MR-AXC] Sampling completed.
+2025-10-22 21:43:53,298 - pyALS-RF - INFO: [MR-AXC] MOO-Samples: 260
+2025-10-22 21:43:53,298 - pyALS-RF - INFO: [MR-AXC] Validation-Samples: 6546
+2025-10-22 21:43:53,298 - pyALS-RF - INFO: [MR-AXC] Initializing leaves costs.
+2025-10-22 21:43:53,309 - pyALS-RF - INFO: [MR-AXC] Computed leaves costs.
+2025-10-22 21:43:53,309 - pyALS-RF - INFO: [MR-AXC] Leaves costs: 
+ [[399, 434, 4, 468, 964, 336, 1037], [406, 462, 9, 398, 897, 418, 1010], [331, 586, 5, 422, 820, 302, 986], [361, 473, 15, 488, 710, 284, 848], [374, 440, 4, 406, 999, 355, 1103], [309, 398, 18, 419, 941, 352, 1008], [460, 439, 24, 475, 760, 224, 953], [442, 411, 10, 405, 884, 325, 835], [420, 569, 9, 543, 768, 386, 894], [417, 449, 18, 442, 801, 367, 944], [377, 553, 8, 543, 922, 352, 1138], [368, 374, 18, 360, 840, 475, 965], [351, 502, 4, 453, 1003, 422, 986], [441, 550, 4, 441, 884, 336, 967], [452, 490, 16, 408, 867, 337, 1095], [373, 418, 8, 399, 764, 299, 999], [431, 379, 27, 359, 966, 329, 1027], [365, 592, 16, 452, 987, 367, 958], [396, 475, 29, 355, 976, 246, 1131], [432, 535, 10, 558, 1019, 429, 1059]]
+2025-10-22 21:43:53,309 - pyALS-RF - INFO: [MR-AXC] Initializing samples per leaf.
+2025-10-22 21:43:53,309 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_MOP..
+2025-10-22 21:43:54,988 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP and Leaves initialized in ms 1676.5398979187012
+2025-10-22 21:43:54,988 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP :92.3076923076923
+2025-10-22 21:43:54,988 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_VAL..
+2025-10-22 21:44:35,410 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL and Leaves initialized in ms 40422.23834991455
+2025-10-22 21:44:35,410 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL :91.3687748243202 Draw Accuracy on X_VAL :91.7506874427131
+2025-10-22 21:44:35,410 - pyALS-RF - INFO: [MR-HEU-FLOW] MrAxC object initialized!
+2025-10-22 21:44:35,410 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrHeu object
+2025-10-22 21:44:35,410 - pyALS-RF - INFO: [MR-HEU] Inizializing Modular Redundancy Heuristic
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed !
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU] Initializing MR-HEU problem
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU] Extracting infos from the dataset...
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU-FLOW] MrHeu initialized !
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU-FLOW] Running problem!
+2025-10-22 21:44:35,444 - pyALS-RF - INFO: [MR-HEU] Starting heuristic Accuracy based. This may take a while, but be patient !
+2025-10-22 21:44:38,565 - pyALS-RF - INFO: [MR-HEU] Accuracy based heuristic completed in 3.120234489440918 !
+2025-10-22 21:45:32,364 - pyALS-RF - INFO: [MR-HEU] Acc. 89.99388939810571 Acc. No Draw 90.58967308279865
+2025-10-22 21:45:32,377 - pyALS-RF - INFO: Summary CSV updated! Please check /home/user/shared/mrq16_exp/pertree_acc_heu/dry_bean/rf_20/mr_report.csv
+2025-10-22 21:45:32,535 - pyALS-RF - INFO: [MR-HEU-FLOW] Problem completed, take a look at /home/user/shared/mrq16_exp/pertree_acc_heu/dry_bean/rf_20/mr_9/cfg_1 and /home/user/shared/mrq16_exp/pertree_acc_heu/dry_bean/rf_20
+2025-10-22 21:45:33,641 - pyALS-RF - INFO: MR-HEU pruning flow
+	conf: /home/user/shared/trained_models/statlog_segment/rf_20/config.json5
+	in_prunig: None
+	pruning_cfg dir: /home/user/shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20/mr_9/cfg_1
+	csv dir: /home/user/shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20
+	Fraction : None
+	Mr Order : 9
+	NCPUS : 8
+2025-10-22 21:45:33,641 - pyALS-RF - INFO: [MR-HEU-FLOW] Running the MR Heuristics flow
+2025-10-22 21:45:33,696 - pyALS-RF - INFO: Tree 0: 41 DBs instantiated.
+2025-10-22 21:45:33,700 - pyALS-RF - INFO: Tree 1: 30 DBs instantiated.
+2025-10-22 21:45:33,702 - pyALS-RF - INFO: Tree 2: 43 DBs instantiated.
+2025-10-22 21:45:33,705 - pyALS-RF - INFO: Tree 3: 31 DBs instantiated.
+2025-10-22 21:45:33,706 - pyALS-RF - INFO: Tree 4: 34 DBs instantiated.
+2025-10-22 21:45:33,708 - pyALS-RF - INFO: Tree 5: 37 DBs instantiated.
+2025-10-22 21:45:33,710 - pyALS-RF - INFO: Tree 6: 36 DBs instantiated.
+2025-10-22 21:45:33,713 - pyALS-RF - INFO: Tree 7: 52 DBs instantiated.
+2025-10-22 21:45:33,715 - pyALS-RF - INFO: Tree 8: 32 DBs instantiated.
+2025-10-22 21:45:33,717 - pyALS-RF - INFO: Tree 9: 42 DBs instantiated.
+2025-10-22 21:45:33,720 - pyALS-RF - INFO: Tree 10: 38 DBs instantiated.
+2025-10-22 21:45:33,722 - pyALS-RF - INFO: Tree 11: 42 DBs instantiated.
+2025-10-22 21:45:33,724 - pyALS-RF - INFO: Tree 12: 40 DBs instantiated.
+2025-10-22 21:45:33,726 - pyALS-RF - INFO: Tree 13: 29 DBs instantiated.
+2025-10-22 21:45:33,728 - pyALS-RF - INFO: Tree 14: 40 DBs instantiated.
+2025-10-22 21:45:33,730 - pyALS-RF - INFO: Tree 15: 22 DBs instantiated.
+2025-10-22 21:45:33,731 - pyALS-RF - INFO: Tree 16: 37 DBs instantiated.
+2025-10-22 21:45:33,734 - pyALS-RF - INFO: Tree 17: 50 DBs instantiated.
+2025-10-22 21:45:33,737 - pyALS-RF - INFO: Tree 18: 43 DBs instantiated.
+2025-10-22 21:45:33,739 - pyALS-RF - INFO: Tree 19: 40 DBs instantiated.
+2025-10-22 21:45:33,748 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrAxC object..
+2025-10-22 21:45:33,749 - pyALS-RF - INFO: [MR-AXC] Initializing the module
+2025-10-22 21:45:33,749 - pyALS-RF - INFO: [MR-AXC] Sampling classess..
+2025-10-22 21:45:33,750 - pyALS-RF - INFO: [MR-AXC] Sampling completed.
+2025-10-22 21:45:33,750 - pyALS-RF - INFO: [MR-AXC] MOO-Samples: 219
+2025-10-22 21:45:33,750 - pyALS-RF - INFO: [MR-AXC] Validation-Samples: 936
+2025-10-22 21:45:33,750 - pyALS-RF - INFO: [MR-AXC] Initializing leaves costs.
+2025-10-22 21:45:33,751 - pyALS-RF - INFO: [MR-AXC] Computed leaves costs.
+2025-10-22 21:45:33,751 - pyALS-RF - INFO: [MR-AXC] Leaves costs: 
+ [[38, 1, 112, 32, 107, 17, 11], [25, 1, 84, 58, 76, 12, 7], [39, 2, 101, 72, 63, 56, 14], [36, 2, 81, 31, 72, 14, 1], [22, 9, 88, 55, 64, 7, 9], [27, 2, 73, 74, 71, 30, 11], [31, 1, 97, 40, 106, 9, 11], [33, 1, 108, 110, 89, 58, 4], [17, 1, 77, 44, 89, 3, 16], [38, 1, 125, 39, 111, 30, 3], [20, 1, 113, 68, 99, 28, 3], [20, 7, 70, 68, 73, 21, 30], [46, 6, 65, 87, 85, 23, 3], [44, 3, 71, 38, 48, 3, 13], [15, 1, 75, 53, 107, 51, 9], [6, 1, 35, 26, 61, 3, 15], [21, 1, 91, 58, 94, 11, 10], [39, 1, 109, 141, 91, 64, 2], [23, 3, 99, 75, 86, 72, 10], [35, 1, 92, 76, 80, 27, 2]]
+2025-10-22 21:45:33,751 - pyALS-RF - INFO: [MR-AXC] Initializing samples per leaf.
+2025-10-22 21:45:33,751 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_MOP..
+2025-10-22 21:45:33,953 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP and Leaves initialized in ms 200.51145553588867
+2025-10-22 21:45:33,953 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP :95.89041095890411
+2025-10-22 21:45:33,953 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_VAL..
+2025-10-22 21:45:34,822 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL and Leaves initialized in ms 869.027853012085
+2025-10-22 21:45:34,823 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL :97.00854700854701 Draw Accuracy on X_VAL :97.22222222222223
+2025-10-22 21:45:34,823 - pyALS-RF - INFO: [MR-HEU-FLOW] MrAxC object initialized!
+2025-10-22 21:45:34,823 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrHeu object
+2025-10-22 21:45:34,823 - pyALS-RF - INFO: [MR-HEU] Inizializing Modular Redundancy Heuristic
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed !
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU] Initializing MR-HEU problem
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU] Extracting infos from the dataset...
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU-FLOW] MrHeu initialized !
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU-FLOW] Running problem!
+2025-10-22 21:45:34,853 - pyALS-RF - INFO: [MR-HEU] Starting heuristic Accuracy based. This may take a while, but be patient !
+2025-10-22 21:45:35,194 - pyALS-RF - INFO: [MR-HEU] Accuracy based heuristic completed in 0.340634822845459 !
+2025-10-22 21:45:36,292 - pyALS-RF - INFO: [MR-HEU] Acc. 94.87179487179486 Acc. No Draw 95.2991452991453
+2025-10-22 21:45:36,296 - pyALS-RF - INFO: Summary CSV updated! Please check /home/user/shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20/mr_report.csv
+2025-10-22 21:45:36,313 - pyALS-RF - INFO: [MR-HEU-FLOW] Problem completed, take a look at /home/user/shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20/mr_9/cfg_1 and /home/user/shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20
+2025-10-22 21:45:37,380 - pyALS-RF - INFO: MR-HEU pruning flow
+	conf: /home/user/shared/trained_models/dry_bean/rf_20/config.json5
+	in_prunig: None
+	pruning_cfg dir: /home/user/shared/mrq16_exp/pertree_margin_heu/dry_bean/rf_20/mr_9/cfg_1
+	csv dir: /home/user/shared/mrq16_exp/pertree_margin_heu/dry_bean/rf_20
+	Fraction : None
+	Mr Order : 9
+	NCPUS : 8
+2025-10-22 21:45:37,380 - pyALS-RF - INFO: [MR-HEU-FLOW] Running the MR Heuristics flow
+2025-10-22 21:45:37,670 - pyALS-RF - INFO: Tree 0: 339 DBs instantiated.
+2025-10-22 21:45:37,710 - pyALS-RF - INFO: Tree 1: 337 DBs instantiated.
+2025-10-22 21:45:37,747 - pyALS-RF - INFO: Tree 2: 329 DBs instantiated.
+2025-10-22 21:45:37,781 - pyALS-RF - INFO: Tree 3: 298 DBs instantiated.
+2025-10-22 21:45:37,816 - pyALS-RF - INFO: Tree 4: 350 DBs instantiated.
+2025-10-22 21:45:37,854 - pyALS-RF - INFO: Tree 5: 334 DBs instantiated.
+2025-10-22 21:45:37,888 - pyALS-RF - INFO: Tree 6: 310 DBs instantiated.
+2025-10-22 21:45:37,921 - pyALS-RF - INFO: Tree 7: 315 DBs instantiated.
+2025-10-22 21:45:37,956 - pyALS-RF - INFO: Tree 8: 332 DBs instantiated.
+2025-10-22 21:45:37,991 - pyALS-RF - INFO: Tree 9: 319 DBs instantiated.
+2025-10-22 21:45:38,029 - pyALS-RF - INFO: Tree 10: 359 DBs instantiated.
+2025-10-22 21:45:38,067 - pyALS-RF - INFO: Tree 11: 314 DBs instantiated.
+2025-10-22 21:45:38,104 - pyALS-RF - INFO: Tree 12: 352 DBs instantiated.
+2025-10-22 21:45:38,144 - pyALS-RF - INFO: Tree 13: 348 DBs instantiated.
+2025-10-22 21:45:38,183 - pyALS-RF - INFO: Tree 14: 345 DBs instantiated.
+2025-10-22 21:45:38,219 - pyALS-RF - INFO: Tree 15: 309 DBs instantiated.
+2025-10-22 21:45:38,252 - pyALS-RF - INFO: Tree 16: 323 DBs instantiated.
+2025-10-22 21:45:38,289 - pyALS-RF - INFO: Tree 17: 345 DBs instantiated.
+2025-10-22 21:45:38,327 - pyALS-RF - INFO: Tree 18: 338 DBs instantiated.
+2025-10-22 21:45:38,369 - pyALS-RF - INFO: Tree 19: 373 DBs instantiated.
+2025-10-22 21:45:38,426 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrAxC object..
+2025-10-22 21:45:38,426 - pyALS-RF - INFO: [MR-AXC] Initializing the module
+2025-10-22 21:45:38,426 - pyALS-RF - INFO: [MR-AXC] Sampling classess..
+2025-10-22 21:45:38,428 - pyALS-RF - INFO: [MR-AXC] Sampling completed.
+2025-10-22 21:45:38,428 - pyALS-RF - INFO: [MR-AXC] MOO-Samples: 260
+2025-10-22 21:45:38,428 - pyALS-RF - INFO: [MR-AXC] Validation-Samples: 6546
+2025-10-22 21:45:38,428 - pyALS-RF - INFO: [MR-AXC] Initializing leaves costs.
+2025-10-22 21:45:38,439 - pyALS-RF - INFO: [MR-AXC] Computed leaves costs.
+2025-10-22 21:45:38,439 - pyALS-RF - INFO: [MR-AXC] Leaves costs: 
+ [[399, 434, 4, 468, 964, 336, 1037], [406, 462, 9, 398, 897, 418, 1010], [331, 586, 5, 422, 820, 302, 986], [361, 473, 15, 488, 710, 284, 848], [374, 440, 4, 406, 999, 355, 1103], [309, 398, 18, 419, 941, 352, 1008], [460, 439, 24, 475, 760, 224, 953], [442, 411, 10, 405, 884, 325, 835], [420, 569, 9, 543, 768, 386, 894], [417, 449, 18, 442, 801, 367, 944], [377, 553, 8, 543, 922, 352, 1138], [368, 374, 18, 360, 840, 475, 965], [351, 502, 4, 453, 1003, 422, 986], [441, 550, 4, 441, 884, 336, 967], [452, 490, 16, 408, 867, 337, 1095], [373, 418, 8, 399, 764, 299, 999], [431, 379, 27, 359, 966, 329, 1027], [365, 592, 16, 452, 987, 367, 958], [396, 475, 29, 355, 976, 246, 1131], [432, 535, 10, 558, 1019, 429, 1059]]
+2025-10-22 21:45:38,439 - pyALS-RF - INFO: [MR-AXC] Initializing samples per leaf.
+2025-10-22 21:45:38,439 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_MOP..
+2025-10-22 21:45:40,024 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP and Leaves initialized in ms 1582.9038619995117
+2025-10-22 21:45:40,024 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP :94.61538461538461
+2025-10-22 21:45:40,024 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_VAL..
+2025-10-22 21:46:20,670 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL and Leaves initialized in ms 40646.063566207886
+2025-10-22 21:46:20,670 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL :91.2771157959059 Draw Accuracy on X_VAL :91.6437519095631
+2025-10-22 21:46:20,670 - pyALS-RF - INFO: [MR-HEU-FLOW] MrAxC object initialized!
+2025-10-22 21:46:20,670 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrHeu object
+2025-10-22 21:46:20,670 - pyALS-RF - INFO: [MR-HEU] Inizializing Modular Redundancy Heuristic
+2025-10-22 21:46:20,703 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed !
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU] Initializing MR-HEU problem
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU] Extracting infos from the dataset...
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU-FLOW] MrHeu initialized !
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU-FLOW] Running problem!
+2025-10-22 21:46:20,704 - pyALS-RF - INFO: [MR-HEU] Starting heuristic Accuracy based. This may take a while, but be patient !
+2025-10-22 21:46:23,778 - pyALS-RF - INFO: [MR-HEU] Accuracy based heuristic completed in 3.0736241340637207 !
+2025-10-22 21:47:18,888 - pyALS-RF - INFO: [MR-HEU] Acc. 89.47448823709135 Acc. No Draw 89.7952948365414
+2025-10-22 21:47:18,893 - pyALS-RF - INFO: Summary CSV updated! Please check /home/user/shared/mrq16_exp/pertree_margin_heu/dry_bean/rf_20/mr_report.csv
+2025-10-22 21:47:19,048 - pyALS-RF - INFO: [MR-HEU-FLOW] Problem completed, take a look at /home/user/shared/mrq16_exp/pertree_margin_heu/dry_bean/rf_20/mr_9/cfg_1 and /home/user/shared/mrq16_exp/pertree_margin_heu/dry_bean/rf_20
+2025-10-22 21:47:20,159 - pyALS-RF - INFO: MR-HEU pruning flow
+	conf: /home/user/shared/trained_models/statlog_segment/rf_20/config.json5
+	in_prunig: None
+	pruning_cfg dir: /home/user/shared/mrq16_exp/pertree_margin_heu/statlog_segment/rf_20/mr_9/cfg_1
+	csv dir: /home/user/shared/mrq16_exp/pertree_margin_heu/statlog_segment/rf_20
+	Fraction : None
+	Mr Order : 9
+	NCPUS : 8
+2025-10-22 21:47:20,159 - pyALS-RF - INFO: [MR-HEU-FLOW] Running the MR Heuristics flow
+2025-10-22 21:47:20,215 - pyALS-RF - INFO: Tree 0: 41 DBs instantiated.
+2025-10-22 21:47:20,219 - pyALS-RF - INFO: Tree 1: 30 DBs instantiated.
+2025-10-22 21:47:20,221 - pyALS-RF - INFO: Tree 2: 43 DBs instantiated.
+2025-10-22 21:47:20,223 - pyALS-RF - INFO: Tree 3: 31 DBs instantiated.
+2025-10-22 21:47:20,225 - pyALS-RF - INFO: Tree 4: 34 DBs instantiated.
+2025-10-22 21:47:20,227 - pyALS-RF - INFO: Tree 5: 37 DBs instantiated.
+2025-10-22 21:47:20,229 - pyALS-RF - INFO: Tree 6: 36 DBs instantiated.
+2025-10-22 21:47:20,232 - pyALS-RF - INFO: Tree 7: 52 DBs instantiated.
+2025-10-22 21:47:20,234 - pyALS-RF - INFO: Tree 8: 32 DBs instantiated.
+2025-10-22 21:47:20,236 - pyALS-RF - INFO: Tree 9: 42 DBs instantiated.
+2025-10-22 21:47:20,238 - pyALS-RF - INFO: Tree 10: 38 DBs instantiated.
+2025-10-22 21:47:20,240 - pyALS-RF - INFO: Tree 11: 42 DBs instantiated.
+2025-10-22 21:47:20,242 - pyALS-RF - INFO: Tree 12: 40 DBs instantiated.
+2025-10-22 21:47:20,244 - pyALS-RF - INFO: Tree 13: 29 DBs instantiated.
+2025-10-22 21:47:20,246 - pyALS-RF - INFO: Tree 14: 40 DBs instantiated.
+2025-10-22 21:47:20,248 - pyALS-RF - INFO: Tree 15: 22 DBs instantiated.
+2025-10-22 21:47:20,250 - pyALS-RF - INFO: Tree 16: 37 DBs instantiated.
+2025-10-22 21:47:20,252 - pyALS-RF - INFO: Tree 17: 50 DBs instantiated.
+2025-10-22 21:47:20,255 - pyALS-RF - INFO: Tree 18: 43 DBs instantiated.
+2025-10-22 21:47:20,257 - pyALS-RF - INFO: Tree 19: 40 DBs instantiated.
+2025-10-22 21:47:20,266 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrAxC object..
+2025-10-22 21:47:20,266 - pyALS-RF - INFO: [MR-AXC] Initializing the module
+2025-10-22 21:47:20,266 - pyALS-RF - INFO: [MR-AXC] Sampling classess..
+2025-10-22 21:47:20,268 - pyALS-RF - INFO: [MR-AXC] Sampling completed.
+2025-10-22 21:47:20,268 - pyALS-RF - INFO: [MR-AXC] MOO-Samples: 219
+2025-10-22 21:47:20,268 - pyALS-RF - INFO: [MR-AXC] Validation-Samples: 936
+2025-10-22 21:47:20,268 - pyALS-RF - INFO: [MR-AXC] Initializing leaves costs.
+2025-10-22 21:47:20,269 - pyALS-RF - INFO: [MR-AXC] Computed leaves costs.
+2025-10-22 21:47:20,269 - pyALS-RF - INFO: [MR-AXC] Leaves costs: 
+ [[38, 1, 112, 32, 107, 17, 11], [25, 1, 84, 58, 76, 12, 7], [39, 2, 101, 72, 63, 56, 14], [36, 2, 81, 31, 72, 14, 1], [22, 9, 88, 55, 64, 7, 9], [27, 2, 73, 74, 71, 30, 11], [31, 1, 97, 40, 106, 9, 11], [33, 1, 108, 110, 89, 58, 4], [17, 1, 77, 44, 89, 3, 16], [38, 1, 125, 39, 111, 30, 3], [20, 1, 113, 68, 99, 28, 3], [20, 7, 70, 68, 73, 21, 30], [46, 6, 65, 87, 85, 23, 3], [44, 3, 71, 38, 48, 3, 13], [15, 1, 75, 53, 107, 51, 9], [6, 1, 35, 26, 61, 3, 15], [21, 1, 91, 58, 94, 11, 10], [39, 1, 109, 141, 91, 64, 2], [23, 3, 99, 75, 86, 72, 10], [35, 1, 92, 76, 80, 27, 2]]
+2025-10-22 21:47:20,269 - pyALS-RF - INFO: [MR-AXC] Initializing samples per leaf.
+2025-10-22 21:47:20,269 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_MOP..
+2025-10-22 21:47:20,498 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP and Leaves initialized in ms 227.57291793823242
+2025-10-22 21:47:20,498 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP :96.34703196347031
+2025-10-22 21:47:20,498 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_VAL..
+2025-10-22 21:47:21,399 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL and Leaves initialized in ms 900.4876613616943
+2025-10-22 21:47:21,399 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_VAL :96.9017094017094 Draw Accuracy on X_VAL :97.00854700854701
+2025-10-22 21:47:21,399 - pyALS-RF - INFO: [MR-HEU-FLOW] MrAxC object initialized!
+2025-10-22 21:47:21,399 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrHeu object
+2025-10-22 21:47:21,399 - pyALS-RF - INFO: [MR-HEU] Inizializing Modular Redundancy Heuristic
+2025-10-22 21:47:21,431 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed !
+2025-10-22 21:47:21,431 - pyALS-RF - INFO: [MR-HEU] Initializing MR-HEU problem
+2025-10-22 21:47:21,431 - pyALS-RF - INFO: [MR-HEU] Extracting infos from the dataset...
+2025-10-22 21:47:21,431 - pyALS-RF - INFO: [MR-HEU] Initialization of MR-HEU completed
+2025-10-22 21:47:21,431 - pyALS-RF - INFO: [MR-HEU-FLOW] MrHeu initialized !
+2025-10-22 21:47:21,432 - pyALS-RF - INFO: [MR-HEU-FLOW] Running problem!
+2025-10-22 21:47:21,432 - pyALS-RF - INFO: [MR-HEU] Starting heuristic Accuracy based. This may take a while, but be patient !
+2025-10-22 21:47:21,815 - pyALS-RF - INFO: [MR-HEU] Accuracy based heuristic completed in 0.38311100006103516 !
+2025-10-22 21:47:22,917 - pyALS-RF - INFO: [MR-HEU] Acc. 94.65811965811966 Acc. No Draw 94.97863247863248
+2025-10-22 21:47:22,921 - pyALS-RF - INFO: Summary CSV updated! Please check /home/user/shared/mrq16_exp/pertree_margin_heu/statlog_segment/rf_20/mr_report.csv
+2025-10-22 21:47:22,938 - pyALS-RF - INFO: [MR-HEU-FLOW] Problem completed, take a look at /home/user/shared/mrq16_exp/pertree_margin_heu/statlog_segment/rf_20/mr_9/cfg_1 and /home/user/shared/mrq16_exp/pertree_margin_heu/statlog_segment/rf_20
+2025-10-22 21:50:40,365 - pyALS-RF - INFO: MR-HEU pruning flow
+	conf: /home/user/shared/trained_models/dry_bean/rf_20/config.json5
+	in_prunig: None
+	pruning_cfg dir: /home/user/shared/mr_exp/pertree_acc_heu/dry_bean/rf_20/mr_9/cfg_1
+	csv dir: /home/user/shared/mr_exp/pertree_acc_heu/dry_bean/rf_20
+	Fraction : None
+	Mr Order : 9
+	NCPUS : 8
+2025-10-22 21:50:40,366 - pyALS-RF - INFO: [MR-HEU-FLOW] Running the MR Heuristics flow
+2025-10-22 21:50:40,656 - pyALS-RF - INFO: Tree 0: 339 DBs instantiated.
+2025-10-22 21:50:40,695 - pyALS-RF - INFO: Tree 1: 337 DBs instantiated.
+2025-10-22 21:50:40,732 - pyALS-RF - INFO: Tree 2: 329 DBs instantiated.
+2025-10-22 21:50:40,765 - pyALS-RF - INFO: Tree 3: 298 DBs instantiated.
+2025-10-22 21:50:40,800 - pyALS-RF - INFO: Tree 4: 350 DBs instantiated.
+2025-10-22 21:50:40,838 - pyALS-RF - INFO: Tree 5: 334 DBs instantiated.
+2025-10-22 21:50:40,872 - pyALS-RF - INFO: Tree 6: 310 DBs instantiated.
+2025-10-22 21:50:40,906 - pyALS-RF - INFO: Tree 7: 315 DBs instantiated.
+2025-10-22 21:50:40,941 - pyALS-RF - INFO: Tree 8: 332 DBs instantiated.
+2025-10-22 21:50:40,977 - pyALS-RF - INFO: Tree 9: 319 DBs instantiated.
+2025-10-22 21:50:41,015 - pyALS-RF - INFO: Tree 10: 359 DBs instantiated.
+2025-10-22 21:50:41,054 - pyALS-RF - INFO: Tree 11: 314 DBs instantiated.
+2025-10-22 21:50:41,091 - pyALS-RF - INFO: Tree 12: 352 DBs instantiated.
+2025-10-22 21:50:41,132 - pyALS-RF - INFO: Tree 13: 348 DBs instantiated.
+2025-10-22 21:50:41,171 - pyALS-RF - INFO: Tree 14: 345 DBs instantiated.
+2025-10-22 21:50:41,208 - pyALS-RF - INFO: Tree 15: 309 DBs instantiated.
+2025-10-22 21:50:41,242 - pyALS-RF - INFO: Tree 16: 323 DBs instantiated.
+2025-10-22 21:50:41,278 - pyALS-RF - INFO: Tree 17: 345 DBs instantiated.
+2025-10-22 21:50:41,317 - pyALS-RF - INFO: Tree 18: 338 DBs instantiated.
+2025-10-22 21:50:41,358 - pyALS-RF - INFO: Tree 19: 373 DBs instantiated.
+2025-10-22 21:50:41,416 - pyALS-RF - INFO: [MR-HEU-FLOW] Initializing the MrAxC object..
+2025-10-22 21:50:41,416 - pyALS-RF - INFO: [MR-AXC] Initializing the module
+2025-10-22 21:50:41,416 - pyALS-RF - INFO: [MR-AXC] Sampling classess..
+2025-10-22 21:50:41,417 - pyALS-RF - INFO: [MR-AXC] Sampling completed.
+2025-10-22 21:50:41,418 - pyALS-RF - INFO: [MR-AXC] MOO-Samples: 260
+2025-10-22 21:50:41,418 - pyALS-RF - INFO: [MR-AXC] Validation-Samples: 6546
+2025-10-22 21:50:41,418 - pyALS-RF - INFO: [MR-AXC] Initializing leaves costs.
+2025-10-22 21:50:41,429 - pyALS-RF - INFO: [MR-AXC] Computed leaves costs.
+2025-10-22 21:50:41,429 - pyALS-RF - INFO: [MR-AXC] Leaves costs: 
+ [[399, 434, 4, 468, 964, 336, 1037], [406, 462, 9, 398, 897, 418, 1010], [331, 586, 5, 422, 820, 302, 986], [361, 473, 15, 488, 710, 284, 848], [374, 440, 4, 406, 999, 355, 1103], [309, 398, 18, 419, 941, 352, 1008], [460, 439, 24, 475, 760, 224, 953], [442, 411, 10, 405, 884, 325, 835], [420, 569, 9, 543, 768, 386, 894], [417, 449, 18, 442, 801, 367, 944], [377, 553, 8, 543, 922, 352, 1138], [368, 374, 18, 360, 840, 475, 965], [351, 502, 4, 453, 1003, 422, 986], [441, 550, 4, 441, 884, 336, 967], [452, 490, 16, 408, 867, 337, 1095], [373, 418, 8, 399, 764, 299, 999], [431, 379, 27, 359, 966, 329, 1027], [365, 592, 16, 452, 987, 367, 958], [396, 475, 29, 355, 976, 246, 1131], [432, 535, 10, 558, 1019, 429, 1059]]
+2025-10-22 21:50:41,429 - pyALS-RF - INFO: [MR-AXC] Initializing samples per leaf.
+2025-10-22 21:50:41,429 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_MOP..
+2025-10-22 21:50:43,061 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP and Leaves initialized in ms 1630.1190853118896
+2025-10-22 21:50:43,061 - pyALS-RF - INFO: [MR-AXC] Accuracy on X_MOP :92.3076923076923
+2025-10-22 21:50:43,061 - pyALS-RF - INFO: [MR-AXC] Initiating accuracy evaluation on X_VAL..

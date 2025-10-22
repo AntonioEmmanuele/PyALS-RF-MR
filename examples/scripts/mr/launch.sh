@@ -2,11 +2,11 @@
 
 # Inputs
 input_datasets=(dry_bean statlog_segment)
-mr_orders=(11)
+mr_orders=(9)
 tree_num=20
 fraction=0
 ranking_procedure=("pertree_acc_heu" "pertree_margin_heu")
-outdir="mrq16_exp"
+outdir="mr_exp"
 ncpus=8
 
 tool='/home/user/pyALS-RF-dbg/pyals-rf'
@@ -16,7 +16,7 @@ for i in $(seq 1 1); do
             for name in ${input_datasets[@]}; do # For each input dataset, i.e. avila, spambase 
                 pruning_directory=/home/user/shared/$outdir/${rk}/${name}/rf_${tree_num}/mr_${mr_order}/cfg_${i}
                 report_directory=/home/user/shared/$outdir/${rk}/${name}/rf_${tree_num}
-                config_director=/home/user/shared/trained_models${name}/rf_${tree_num}/config.json5
+                config_director=/home/user/shared/trained_models/${name}/rf_${tree_num}/config.json5
                 mkdir -p $pruning_directory
                 mkdir -p $report_directory
                 if [[ "$fraction" -eq "0" ]]; then

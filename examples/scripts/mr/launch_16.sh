@@ -2,7 +2,7 @@
 
 # Inputs
 input_datasets=(dry_bean statlog_segment)
-mr_orders=(11)
+mr_orders=(9)
 tree_num=20
 fraction=0
 ranking_procedure=("pertree_acc_heu" "pertree_margin_heu")
