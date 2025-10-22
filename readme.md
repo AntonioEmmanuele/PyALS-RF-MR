@@ -241,7 +241,7 @@ Example:
 ```bash
 ./pyals-rf mr_additional_estimations  -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5   -e ../shared/mrq16_exp/statlog_segment/pertree_acc_heu/rf_20 -k mr_ -r cfg_ -l 9 -u 9 -s 2 -n 1 -j 20```
 This script will create, alongside the mr_report.csv file, two new files: `node_counts_report.csv` and `per_class_acc_report.csv`.  
-
+```
 ---
 
 ### Generate HDL code
