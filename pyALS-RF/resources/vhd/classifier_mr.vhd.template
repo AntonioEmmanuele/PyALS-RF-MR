@@ -31,7 +31,7 @@ entity classifier is
     {% for f in features -%}
     nab_{{f['name']}} : natural := {{f['nab']}}{{";" if not loop.last else ""}}
     {% endfor %}
-  );  -- ✅ proper generic closure
+  );  
 
   port (
     clock   : in std_logic;
@@ -42,7 +42,7 @@ entity classifier is
     {% for c in classes -%}
     class_{{c}} : out std_logic{{"" if loop.last else ";"}}
     {% endfor %}
-  );  -- ✅ no semicolon after last output
+  );  
 end classifier;
 
 architecture structural of classifier is
