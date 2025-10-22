@@ -29,7 +29,25 @@ This reflects the typical development setup adopted for the experiments in the p
 ---
 
 ### Installation Guide
+#### Preliminary Step
+As the tool performs several other functionalities, such as Approximate Logic Synthesis, it is required 
 
+a `LutCatalog` for starting the container. 
+
+To this aim, the folder `./pyALS-lut-catalog`, contains a well detailed guide detailing how to build a catalog.
+
+In short, you need to : 
+
+1. Install ```sqlite3'''. 
+
+2. Run, withing the  `./pyALS-lut-catalog` folder, the command:
+```
+./import.sh
+```
+
+ 
+
+#### Installation Steps
 1. **Install Docker** on your system (see [Get Docker](https://docs.docker.com/get-docker/)).
 
 2. **Pull the container image**:
@@ -69,11 +87,6 @@ In this case, the `shared` folder, will contain the content of the `examples` fo
 Beware, that at the time of the writing of this readme, we are currently developing the tool as attached to a docker repository. 
 
 Once, the works will be done, the main image of the docker container will be updated. 
-
-Note that for installing the tool **without docker**, you also need a lut_catalog, which can be found here: (https://github.com/SalvatoreBarone/pyALS-lut-catalog). 
-
-The repository contains also the instructions for building the catalog. 
-
 
 ---
 
