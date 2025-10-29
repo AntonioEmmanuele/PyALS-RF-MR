@@ -58,7 +58,7 @@ In short, you need to :
 3. **Run the script**
 
 ```bash
-./runPyAlsDock.sh -c ./pyALS-lut-catalog/lut_catalog.db -d ./pyALS_RF -s pathOfYourExperiments
+./runPyAlsDock.sh -c ./pyALS-lut-catalog/lut_catalog.db -d ./pyALS-RF -s pathOfYourExperiments
 ```
 
 This script executes the Docker container, attaching as a shared folder the version of **pyALS-RF** contained in this directory.  
@@ -77,7 +77,7 @@ The script maps three different shared folders, located under `/home/user` insid
 If you want to map the experiment folder, in the the provided examples simply run: 
 
 ```bash
-./runPyAlsDock.sh -c ./pyALS-lut-catalog/lut_catalog.db -d ./pyALS_RF -s ./examples
+./runPyAlsDock.sh -c ./pyALS-lut-catalog/lut_catalog.db -d ./pyALS-RF -s ./examples
 ```
 
 In this case, the `shared` folder, will contain the content of the `examples` folder.
