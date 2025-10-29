@@ -11,8 +11,7 @@ More specifically, the tool implements a behavioral simulation of the accelerato
 ([DOI: 10.1109/WAINA.2016.171](https://doi.org/10.1109/WAINA.2016.171)).
 
 Using this behavioral simulation, the tool is capable of generating approximate classifiers by exploiting such behavior model.
-
-** Tested on Docker version 27.4.0, on WSL and Ubuntu**
+**Tested on Docker version 27.4.0, on WSL and Ubuntu**
 ---
 
 ## Installation
