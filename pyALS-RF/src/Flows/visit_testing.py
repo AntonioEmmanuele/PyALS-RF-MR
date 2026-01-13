@@ -165,7 +165,6 @@ def test_classifier_from_indexes(ctx, quantization_type, indexes_path, ncpus, ou
         np.savetxt(lCostPath, leaves_costs, fmt = "%d")
         np.savetxt(leavesLabelsPath, classes_per_sample, fmt ="%d")
 
-
 def perclass_margin(ctx, quantization_type, indexes_path, ncpus, outpath):
     def per_sample_margin(pred_vectors, yprun):
         """Compute one margin value per sample in the test set."""

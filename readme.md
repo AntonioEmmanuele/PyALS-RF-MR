@@ -2,8 +2,7 @@
 
 ## Repository and Goals
 
-This repository is a mirror of the **PyALS-RF** project (https://github.com/SalvatoreBarone/pyALS-RF), created with the purpose of providing an immediate link between the experimental evaluation presented in  
-*“Exploiting Modular Redundancy for Approximating Random Forest Classifiers”* and the employed tool.
+This repository is a mirror of the **PyALS-RF** project (https://github.com/SalvatoreBarone/pyALS-RF), created with the purpose of providing an immediate link between new presented experimental evaluation and the employed tool.
 
 **PyALS-RF** is a tool designed to investigate approximate Random Forest implementations on FPGA/ASIC.  
 More specifically, the tool implements a behavioral simulation of the accelerator described in  
@@ -13,6 +12,10 @@ More specifically, the tool implements a behavioral simulation of the accelerato
 Using this behavioral simulation, the tool is capable of generating approximate classifiers by exploiting such behavior model.
 
 **Tested on Docker version 27.4.0, on WSL (Kernel: 5.15.167.4-microsoft-standard-WSL2) and Vanilla Ubuntu 24.10**
+**Note:** PyALS-RF is an ongoing research tool.  
+Each paper referring to this repository is associated with a dedicated branch that contains the corresponding version of the tool.  
+If a paper does not provide a specific repository or branch, the required commands are available on the `main` branch.  
+To ensure full reproducibility of results, always switch to the branch corresponding to the proposal you intend to explore.
 
 ---
 
@@ -269,5 +272,65 @@ The command employed the HDL code of an exact and approximate classifier is:
 Example: 
 ```bash
 ./pyals-rf generate_mr_hdl -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5 -o ../shared/testHDL -q "int16" -p  ../shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20/mr_9/cfg_1/pruning_conf.json5 -a ../shared/mrq16_exp/pertree_acc_heu/statlog_segment/rf_20/mr_9/cfg_1/per_class_cfg.json5
+```
+
+---
+
+### Rank Test Samples according to model confidence
+
+The tool enables the ranking of test-samples by estimating the model confidence.
+Such confidence is computed by employing 4 different metrics: 
+- Margin
+- Gini-Simpson Index
+- L2 Error Norm
+- Cross-Entropy
+Given a trained model, the command to use to generate the rankings is: 
+```bash
+./pyals-rf rank_samples -c <modelCfgPath> -o <rankOutPath> -q <quantizationLevel> -j <nCPUs>
+```
+
+This command will generate in the rankOutPath, two files for each metric. The first one, contains the metric value for each sample, as it appears in the test-set ordering.
+Differently, the second file contains, the index of the test-samples sorted from decreasing confidence up to maximum confidence. 
+
+Example (run within the pyALS-RF-dbg folder):
+```bash
+mkdir -p ../shared/rank_test && ./pyals-rf rank_samples -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5 -q "int16" -j 8 -o ../shared/rank_test 
+```
+
+---
+
+### Generate Fault Sites.
+
+The tool enables the sampling of fault sites of a model through Statistical Fault Injection.
+Particularly, the tool requires: 
+- The error-margin
+- The desired confidence level
+- The population characteristic
+```bash
+./pyals-rf gen_fault_coll -c <modelCfg> -o <outPath> -w <workingMode> -q <thresholdRepr> -e <errorMargin> -p <populationCharacteristic> -t <confidenceLevel> 
+```
+Working mode should be keep always to 0 to perform sampling over the entire ensemble. 
+
+Example (run within the pyALS-RF-dbg folder):
+```bash
+mkdir -p ../shared/fs_statlog && ./pyals-rf gen_fault_coll -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5 -o ../shared/fs_statlog -w 0 -q "int16" -e 0.05 -p 0.5 -t 0.95 
+```
+
+
+---
+
+### Run Fault Injection
+By employing the generated fault sites, it is possible to perform Fault Injection. 
+In order to inject considering the entire Test-Set, use the following command. 
+
+```bash
+pyals-rf fault_injection_ex -c <modelCfgPath> -f <pathHoldingTheFaultSites> -o <outPath> -j <nCPUs> -q <thdRepr> 
+```
+After executing, the command will generate in the outPath files, holding, for each fault sites, statics, as well as, for each sample, the set of faults 
+that it activates.
+
+Example (run within the pyALS-RF-dbg folder):
+```bash
+mkdir -p ../shared/fi_statlog && ./pyals-rf fault_injection_ex -c ../shared/trained_models_q16/statlog_segment/rf_20/config.json5 -o ../shared/fi_statlog -q "int16" -j 8 -f ../shared/fs_statlog 
 ```
 

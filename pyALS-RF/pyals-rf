@@ -28,10 +28,11 @@ from src.hdl_generation import hdl_generation, hdl_resource_usage, dyn_energy_es
 from src.git_updater import git_updater
 from src.Flows.lcor_flow import leaves_correlation_flow, leaves_correlation_flow_2
 from src.Flows.tmr_flow import tmr_flow, mr_mop_flow, mr_heu_flow, mr_additional_eval
-from src.Flows.faultinj_flow import fault_visit, gen_fault_collection, gen_fault_coll_ps,  dump_unfaulted_class_vector, sample_test_set, ps_faultinj_visit #, test_dbs_faulted_inference, test_bns_faulted_inference
+from src.Flows.faultinj_flow import fault_visit, fault_visit_exhaustive, gen_fault_collection, gen_fault_coll_ps,  dump_unfaulted_class_vector, sample_test_set, ps_faultinj_visit, sample_ranking #, test_dbs_faulted_inference, test_bns_faulted_inference
 from src.Flows.visit_testing import visit_test, test_classifier_from_indexes, perclass_margin
-
+from src.Flows.new_grep_flow import new_grep_flow
 from src.Flows.pruner_flow import ensemble_pruning_flow
+from src.Flows.new_tree_test import test_decision_tree
 
 @click.group(chain=True)
 @click.pass_context
@@ -136,6 +137,45 @@ def grep(ctx, conf, ncpus, espresso, fraction, approach, cost, minredundancy, ma
     grep_flow(ctx, fraction, approach, cost, minredundancy, maxloss, output)
     store_flow(ctx)
     
+@cli.command("new_grep")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-q', '--quantization_type', type=str, default = None, help = "Use int16 for 16 bit quantization. Otherwise use None.")
+@click.option('-i', '--in_pruning', type=click.Path(dir_okay=True), default = None, help = "Path of an input pruning configuration to prune the model before applying the heuristic.")
+@click.option('-p', '--pruning_dir', type=click.Path(dir_okay=True), default = "./", help = "Path were the pruning cfg is saved. Note that this folder may be different that the one of the csv dir.")
+@click.option('-f', '--fraction', type = float, default = 0.5, help = "Fraction of the test set to be used as XAxC set. Note that if None the Levegue formula is used.")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-x', '--cost', type = click.Choice(["depth", "activity", "combined"]) , default = "combined", help = "Cost criterion for the pruning")
+@click.option('-r', '--minredundancy', type = int, default = 0, help = "Minimum redundancy to be kept")
+@click.option('-m', '--maxloss', type = float, default = 5.0, help = "Maximum allowed accuracy loss")
+@click.option('-t', '--epoch_threshold', type = float, default = 0.1, help = "Portion of the pruning set to use as threshold in the apporximation")
+@click.option('-g', '--global_impact_eval', type = click.Choice(["min", "mean", "max"]) , default = "min", help = "Criterion for global impact pruning evaluation")
+@click.option('-o', '--csv_dir', type=click.Path(dir_okay=True), default = None, help = "Override output directory configuration")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def new_grep(ctx, conf, quantization_type, in_pruning, pruning_dir, fraction, ncpus, cost, minredundancy, maxloss, epoch_threshold, global_impact_eval, csv_dir, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "NEW_GREP")
+    logger = logging.getLogger("pyALS-RF")
+    logger.info("Performing NEW GREP trimming"
+                f"\n\tconf: {conf}"
+                f"\n\tq: {quantization_type}"
+                f"\n\tin_pruning: {in_pruning}"
+                f"\n\tpruning fraction: {fraction}"
+                f"\n\tNCPUS : {ncpus}"
+                f"\n\tcost criterion: {cost}"
+                f"\n\tcost criterion: {global_impact_eval}"
+                f"\n\tmin. redundancy: {minredundancy}"
+                f"\n\tmax. loss: {maxloss}"
+                f"\n\tthreshold: {epoch_threshold}"
+                f"\n\toutput dir: {csv_dir}"
+                f"\n\tpruning_cfg dir: {pruning_dir}"
+                )
+    new_grep_flow(
+        ctx=ctx, quantization_type=quantization_type,
+        in_pruning=in_pruning, fraction=fraction, 
+        global_impact_method=global_impact_eval, ncpus=ncpus,
+        cost_criterion=cost, minredundancy=minredundancy, report_dir=csv_dir,
+        pruning_dir=pruning_dir, maxloss=maxloss, validation_epoch=epoch_threshold
+    )
     
 @cli.command("lcor")
 @click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
@@ -470,6 +510,21 @@ def fault_injection_visit(ctx, conf, grep_pruning_configuration, ps_index, input
     #test_dbs_faulted_inference(ctx = ctx, conf = conf, input_faults = input_faults)
     #test_bns_faulted_inference(ctx = ctx, conf = conf, input_faults = input_faults)
 
+
+
+@cli.command("fault_injection_ex")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
+@click.option('-f', '--input_faults', type=click.Path(exists=True, dir_okay=True), default = None, help = "Input faults ")
+@click.option('-q', '--feat_repr', type=str, default = "f32", help = "Feature representation.")
+@click.option('-o', '--out', type=click.Path(exists=True, dir_okay=True), default = None, help = "Output directory.")
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.pass_context
+def fault_injection_visit_exhaustive(ctx, conf, input_faults, feat_repr, out, verbose, ncpus):#, outdir):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "faultinj")
+    fault_visit_exhaustive(ctx, output=out, feat_repr=feat_repr, input_faults_path=input_faults, ncpus=ncpus)
+        # fault_visit(ctx = ctx, pruning_cfg = grep_pruning_configuration, input_faults = input_faults, samples_idx = xtest, output = out, ncpus = ncpus)
+
 @cli.command("gen_class_vectors")
 @click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file")
 @click.option('-t', '--test_idx', type=click.Path(exists=True, dir_okay=True), default = None, help = f"Path of file containing the indexes used during tests")
@@ -499,6 +554,7 @@ def pruningcfg_into_directions(ctx, conf, pruning_conf, gen_val_set,  val_idx, v
 
 @cli.command("gen_fault_coll")
 @click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--feat_repr', type=str, default = "f32", help = "Representation used for features and thds.")
 @click.option('-g', '--grep_pruning_configuration', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON GREP pruning configuration file of the classifier")
 @click.option('-a', '--archive_nab', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON path of the Final Archive of the classifier.")
 @click.option('-i', '--val_idx', type = click.Path(exists=False, dir_okay=False), default = None, help = "Path of the validation indexes, valid only for NAB (PS) ")
@@ -507,14 +563,14 @@ def pruningcfg_into_directions(ctx, conf, pruning_conf, gen_val_set,  val_idx, v
 @click.option('-w', '--working_mode', type = int, default = 0, help = "Sample fault sites for the entire universe or from single different fault universes.")
 @click.option('-e', '--error_margin', type = float, default = 0.01, help = " Error margin in the Leveugle formula.")
 @click.option('-p', '--individual_prob', type = float, default = 0.5, help = " Individual probability in the Leveugle formula.")
-@click.option('-t', '--confidence_level', type = float, default = 0.95, help = " Confidence level used to compute the cut off from N-dist in the Leveugle formula.")
+@click.option('-t', '--confidence_level', type = float, default = 0.99, help = " Confidence level used to compute the cut off from N-dist in the Leveugle formula.")
 @click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
 @click.pass_context
-def gen_fault_coll(ctx, conf, grep_pruning_configuration, archive_nab, val_idx, out, verbose, working_mode, error_margin, individual_prob, confidence_level, ncpus):
+def gen_fault_coll(ctx, conf, feat_repr, grep_pruning_configuration, archive_nab, val_idx, out, verbose, working_mode, error_margin, individual_prob, confidence_level, ncpus):
     set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "faultinj")
     assert not (archive_nab != None and grep_pruning_configuration != None), "Not supported mode, select only one approximate configuration"
     if archive_nab is None:
-        gen_fault_collection(ctx, pruning_cfg = grep_pruning_configuration, working_mode = working_mode, error_margin = error_margin, confidence_level = confidence_level, individual_prob = individual_prob, out_dir = out, ncpus = ncpus)
+        gen_fault_collection(ctx, feat_repr= feat_repr, pruning_cfg = grep_pruning_configuration, working_mode = working_mode, error_margin = error_margin, confidence_level = confidence_level, individual_prob = individual_prob, out_dir = out, ncpus = ncpus)
     else:
         gen_fault_coll_ps(ctx, archive_nab, val_idx, working_mode, error_margin, confidence_level, individual_prob, out, ncpus)    
 
@@ -615,6 +671,28 @@ def mr_additional_estimations(ctx, conf, quantization_type, ncpus, exp_path, sub
     mr_additional_eval(ctx, quantization_type, ncpus, exp_path, subpath_k, subpath_rep, k_lb, k_ub, k_step, nreps)
     
 
+@cli.command("test_new_tree_structure")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--quantization_type', type=str, default = None, help="Quantization Type used for internal threshold")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.pass_context
+def test_new_tree_structure(ctx, conf, quantization_type, ncpus, verbose):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "eval_test_ind")
+    test_decision_tree(ctx, conf, quantization_type, ncpus)
+    
+@cli.command("rank_samples")
+@click.option('-c', '--conf', type=click.Path(exists=True, dir_okay=False), default = None, help = "JSON configuration file of the classifier")
+@click.option('-q', '--quantization_type', type=str, default = None, help="Quantization Type used for internal threshold")
+@click.option('-j', '--ncpus', type = int, help = f"Number of parallel jobs to be used turing DSE. By default, it is {cpu_count()}", default = cpu_count())
+@click.option('-v', '--verbose', type = click.Choice(["DEBUG", "INFO", "WARNINGS", "ERROR", "CRITICAL", 10, 20, 30, 40, 50]), default = "INFO")
+@click.option('-o', '--out_path', type = str, required = False, default = "./")
+@click.pass_context
+def rank_samples(ctx, conf, quantization_type, ncpus, verbose, out_path):
+    set_global_options(ctx, conf, "pyALS-RF", verbose, ncpus, False, "eval_test_ind")
+    sample_ranking(ctx, conf, quantization_type, ncpus, out_path)
+
+
 cli.add_command(bitwidth)
 cli.add_command(als)
 cli.add_command(full)
@@ -643,6 +721,9 @@ cli.add_command(eval_energy)
 cli.add_command(eval_perclass_margin)
 cli.add_command(mr_additional_estimations)
 cli.add_command(generate_mr_hdl)
+cli.add_command(new_grep)
+cli.add_command(rank_samples)
+cli.add_command(fault_injection_visit_exhaustive)
 
 if __name__ == '__main__':
     # if git_updater(os.path.dirname(os.path.realpath(__file__))):

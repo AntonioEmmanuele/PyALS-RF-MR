@@ -191,7 +191,20 @@ class Classifier:
         for t in self.trees:
             t.dump()
 
-        
+    
+    def set_samples_repr(self, data_type = "int16"):
+        if data_type == "f32":
+            self.x_train = self.x_train.astype(np.float32)
+            self.x_test = self.x_test.astype(np.float32)
+        elif data_type == "int16":
+            self.x_train = np.round(self.x_train).astype(np.int16)
+            self.x_test = np.round(self.x_test).astype(np.int16)
+        elif data_type == "int8":
+            self.x_train = np.round(self.x_train).astype(np.int8)
+            self.x_test = np.round(self.x_test).astype(np.int8)
+        else:
+            assert 1 == 0
+    
     """ 
         This is an additional function added to support QAT (Quantization Aware Training).
         It simply changes the underlying data type of each decision box FOR EACH TREE.
@@ -322,12 +335,33 @@ class Classifier:
         assert len(np.shape(x_test)) == 2
         return np.array( [ np.sum( [t.visit(x) for t in trees ], axis = 0) for x in tqdm(x_test, desc = "Evaluating score", disable = disable_tqdm) ] )
     
+    @staticmethod
+    def compute_score_many(trees: list[DecisionTree], X_test: ndarray):
+
+        # Output di ogni albero, ciascuno di shape (N, C)
+        all_outputs = [t.visit_many(X_test) for t in trees]
+
+        # Converte in array NumPy con shape (T, N, C)
+        all_outputs = np.asarray(all_outputs)
+
+        # Somma sui T alberi → risultato (N, C)
+        return np.sum(all_outputs, axis=0)
+
     def predict(self, x_test : ndarray, disable_tqdm = False):
         if len(np.shape(x_test)) == 1:
             np.reshape(x_test, np.shape(x_test)[0])
         args = [[t, x_test, disable_tqdm] for t in self.p_tree]
         return np.sum(self.pool.starmap(Classifier.compute_score, args), axis = 0)
     
+    def predict_many(self, X_test : ndarray):
+        # if len(np.shape(X_test)) == 1:
+        #     np.reshape(X_test, np.shape(X_test)[0])
+
+        args = [[t, X_test] for t in self.p_tree]
+        return np.sum(self.pool.starmap(Classifier.compute_score_many, args), axis = 0)
+        
+
+
     """ Given  a set of classes per each tree this function returns the set of leaf indexes for each tree.
         For instance:
             1 - class_list =  [[c_0, c_3], [c_2, c_4]]  c_0 and c_3 are the classes required for a specific tree 
@@ -662,6 +696,60 @@ class Classifier:
                     stored_boxes.update({tree_name : old_boxes})
         return stored_boxes
     
+    # Inject a threshold fault        
+    def inject_tree_thds_faults(self, faults_per_tree):
+        stored_boxes = {}
+        for tree_name in faults_per_tree.keys():
+            for tree in self.trees:
+                if tree.name == tree_name:
+                    #old_boxes = tree.replace_db_with_fb(faults_per_tree[tree_name])
+                    old_boxes = tree.flip_thds_bit(faults_per_tree[tree_name])
+                    stored_boxes.update({tree_name : old_boxes})
+        return stored_boxes
+    
+    # Replace Tree decision boxes with faulted boxes FOR THE INPUT REGISTER.       
+    def inject_tree_regin_faults(self, faults_per_tree):
+        stored_boxes = {}
+        for tree_name in faults_per_tree.keys():
+            for tree in self.trees:
+                if tree.name == tree_name:
+                    old_boxes = tree.replace_db_with_fb_reg_input(faults_per_tree[tree_name])
+                    stored_boxes.update({tree_name : old_boxes})
+        return stored_boxes
+    
+    # # Replace Tree decision boxes with faulted boxes.    
+    # # Returns the set of stored decision boxes per each different tree.        
+    # def inject_tree_boxes_faults_fb_zc(self, faults_per_tree):
+    #     for tree_name in faults_per_tree.keys():
+    #         for tree in self.trees:
+    #             if tree.name == tree_name:
+    #                 # old_boxes = tree.replace_db_with_fb(faults_per_tree[tree_name])
+    #                 tree.replace_db_with_fb_zero_copy(faults_per_tree[tree_name])
+
+    # # Replace Tree decision boxes with faulted boxes.    
+    # # Returns the set of stored decision boxes per each different tree.        
+    # def restore_tree_boxes_faults_fb_zc(self, faults_per_tree):
+    #     for tree_name in faults_per_tree.keys():
+    #         for tree in self.trees:
+    #             if tree.name == tree_name:
+    #                 # old_boxes = tree.replace_db_with_fb(faults_per_tree[tree_name])
+    #                 tree.restore_db_zero_copy(faults_per_tree[tree_name])
+    
+    # # Returns the set of stored decision boxes per each different tree.        
+    # def inject_single_box_fault_fb(self, tree_fault):
+    #     tree_key = next(iter(tree_fault))
+    #     fault_key = next(iter(tree_fault[tree_key]))
+    #     t_idx = int(tree_key)
+    #     for box in self.trees[t_idx].decision_boxes:
+    #         if box["name"]  == fault_key:
+    #             # Set the fixed value
+    #             box["box"].fixed_value = tree_fault[tree_key][fault_key]
+    #             # Change the inference strategy
+    #             box["box"].change_strategy("faulted_box")
+    #             # Return the box
+    #             return box["box"]
+        
+    
     # Fix the assertion functions
     # This function simply changes specific assertion functions for each 
     # tree by setting specific assertions to True or false. 
@@ -686,6 +774,12 @@ class Classifier:
         for tree in self.trees:
             if tree.name in old_dbs.keys():
                 tree.restore_db(old_dbs[tree.name])
+
+    
+    def restore_thds(self, old_dbs):
+        for tree in self.trees:
+            if tree.name in old_dbs.keys():
+                tree.restore_tree_thds(old_dbs[tree.name])
 
     def restore_bns(self, old_bns):
         for tree in self.trees:

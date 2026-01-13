@@ -120,6 +120,16 @@ class DecisionTree:
     def get_boxes_output(self, attributes):
         return {box["box"].name if self.als_conf is None else "\\" + box["box"].name() : box["box"].compare(attributes[self.attrbutes_name.index(box["box"].feature_name)]) for box in self.decision_boxes}
     
+    def get_boxes_output_many(self, X):
+        outs = [{} for _ in range(len(X))]
+        for box in self.decision_boxes:
+            results = box["box"].compare_many(X[:,self.attrbutes_name.index(box["box"].feature_name)])
+            name = box["box"].name
+            for o, r in zip(outs, results):
+                o[name] = r
+        #return {box["box"].name if self.als_conf is None else "\\" + box["box"].name() : box["box"].compare_many(attributes[self.attrbutes_name.index(box["box"].feature_name)]) for box in self.decision_boxes}
+        return outs
+    
     def visit(self, attributes):
         boxes_output = self.get_boxes_output(attributes)
         if self.als_conf is None:
@@ -128,6 +138,21 @@ class DecisionTree:
         lut_io_info = {}
         output = self.assertions_graph.evaluate(boxes_output, lut_io_info, self.current_als_configuration)[0]
         return [ o[f"\\{c}"] for c in self.model_classes ]
+    
+    def visit_many(self, X):
+        to_ret = [[0 for a in self.boolean_networks] for _ in range((len(X)))]
+        per_sample_boxes_output = self.get_boxes_output_many(X)
+        compiled_sops = [
+            compile(a["sop"], "<sop>", "eval") 
+            for a in self.boolean_networks
+        ]
+        # For each bolean network
+        for b_idx, a in enumerate(compiled_sops):
+            # For each boxes output per sample
+            for s_idx, boxes_output in enumerate(per_sample_boxes_output):
+                to_ret[s_idx][b_idx] = int(eval(a, boxes_output))
+        return to_ret
+        
     
     """ This function returns the class label of the trees, alongside the number of nodes used to reach the decision."""
     def get_num_nodes_4_sample(self, attributes):
@@ -320,10 +345,45 @@ class DecisionTree:
         stored_boxes = []
         for box in self.decision_boxes:
             if box["name"]  in faults.keys():
-                stored_boxes.append(copy.deepcopy(box["box"]))
+                stored_boxes.append(box["box"])
                 box["box"] = FaultedBox(box_name = box["box"].name, feature_name = box["box"].feature_name, data_type = box["box"].data_type, fixed_value = faults[box["name"]])
         return stored_boxes
     
+    def replace_db_with_fb_reg_input(self, faults):
+        stored_boxes = []
+        for box in self.decision_boxes:
+            if box["name"]  in faults.keys():
+                stored_boxes.append(box["box"])
+                box["box"] = FaultedBoxRegInput(decision_box=box["box"], bit_to_flip=faults[box["name"]][0], fixed_value=faults[box["name"]][0]) 
+                # FaultedBox(box_name = box["box"].name, feature_name = box["box"].feature_name, data_type = box["box"].data_type, fixed_value = faults[box["name"]])
+        return stored_boxes
+    
+    def flip_thds_bit(self, faults):
+        stored_boxes = []
+        for box in self.decision_boxes:
+            if box["name"]  in faults.keys():
+                stored_boxes.append(box["box"])
+                box["box"].flip_thd_bit(bit_to_flip = faults[box["name"]][0], value = faults[box["name"]][1])
+        return stored_boxes
+    
+    def restore_tree_thds(self, old_boxes):
+        for old_box in old_boxes:
+            for box in self.decision_boxes:
+                if old_box.name == box["name"]:
+                    box["box"].threshold = box["box"].thd_back
+    
+
+    # def replace_db_with_fb_zero_copy(self, faults):
+    #     for box in self.decision_boxes:
+    #         if box["name"]  in faults.keys():
+    #             box["box"].change_strategy("faulted_box")
+    #             box["box"].fixed_value = faults[box["name"]]
+                
+    # def restore_db_zero_copy(self, faults):
+    #     for box in self.decision_boxes:
+    #         if box["name"]  in faults.keys():
+    #             box["box"].change_strategy("normal")
+
     def restore_db(self, old_boxes):
         for old_box in old_boxes:
             for box in self.decision_boxes:
@@ -420,7 +480,8 @@ class DecisionTree:
     """
     def set_box_data_type(self, type = "int16"):
         for box in self.decision_boxes: 
-            box["box"].data_type = type
+            #box["box"].data_type = type
+            box["box"].set_dt(type)
     """ 
         Generate BNS alias for iv evaluation.
     """

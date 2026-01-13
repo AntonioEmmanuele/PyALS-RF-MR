@@ -20,18 +20,31 @@ import random
 from tqdm import tqdm
 import json5
 from scipy.stats import norm # For cut-offs.
+import pandas as pd
 
 class FaultCollection:
 
-    def __init__(self, classifier : Classifier, nabs = None):
+    bits_per_repr = {
+        "f64": 64,
+        "f32": 32,
+        "int16": 16,
+        "int8":  8
+    }
+    
+    def __init__(self, classifier : Classifier, nabs = None, feat_repr = "f32"):
         
         if nabs is not None:
             assert len(nabs) == len(classifier.model_features), "Insert a valid NABS configuration"
             self.nabs = nabs
+        else:
+            self.nabs = {}
+            for f in range(len(classifier.model_features)):
+                self.nabs[f] = 0
+            
         self.list_of_fault_sites = []   
         """ Internally each fault site is represented by a tuple containing
             0 -> The type of fault (DB/BN/Feat), specified by the indexes described in the following code.
-            1 -> The fault site ( dicrionary)
+            1 -> The fault site ( dictionary)
             Fault Site :
 
             key         value
@@ -41,6 +54,8 @@ class FaultCollection:
         """
         self.list_of_feature_fault_sites = []
         self.list_of_db_fault_sites = []
+        self.list_of_db_thd_fault_sites = []
+        self.list_of_db_reg_feat_fault_sites = []
         self.list_of_bn_fault_sites = []
         """  
             The "list_of_faults" containts, per each category, the list of fault sites.
@@ -51,8 +66,12 @@ class FaultCollection:
         self.feat_faults_idx = 0
         self.db_faults_idx = 1
         self.bn_faults_idx = 2
-        self.list_of_faults = [[],[],[]]
-        self.list_of_fixed_values = [[], [], []]
+        self.thd_faults_idx = 3
+        self.reg_feat_faults_idx = 4 
+        self.list_of_faults = [[],[],[], [], []]
+        self.list_of_fixed_values = [[], [], [], [], []]
+
+        self.Nbits_per_repr = FaultCollection.bits_per_repr[feat_repr]     
         
         self.get_fault_sites_features(classifier = classifier)
         self.get_fault_sites_db(classifier = classifier)
@@ -75,6 +94,7 @@ class FaultCollection:
                     fault_site = (self.bn_faults_idx, {tree.name : { bn["class"] : minterm}})
                     self.list_of_fault_sites.append(fault_site)
                     self.list_of_bn_fault_sites.append(fault_site)
+
     # Initialize all the decision boxes fault sizes.
     # The fault universe of decision boxes is the set of decision boxes per each different tree.
     def get_fault_sites_db(self, classifier : Classifier) : 
@@ -82,15 +102,26 @@ class FaultCollection:
         for tree in classifier.trees:
             #    fault_per_tree.update({tree.name: [box["name"] for box in tree.decision_boxes]})
             for box in tree.decision_boxes:
+                # Get the fault sites for FaultedBox as stuck-at values.
                 fault_site = (self.db_faults_idx, {tree.name : box["name"]})
                 self.list_of_db_fault_sites.append(fault_site)
                 self.list_of_fault_sites.append(fault_site)
-        #return fault_per_tree
+                # Get the Threshold Fault Sites
+                for i in range(0, self.Nbits_per_repr):
+                    fault_site_thd = (self.thd_faults_idx, {tree.name : { box["name"] : i} })
+                    self.list_of_db_thd_fault_sites.append(fault_site_thd)
+                    self.list_of_fault_sites.append(fault_site_thd)
+                # Now, get the input feature value error
+                for i in range(0, self.Nbits_per_repr):
+                    fault_site_feat = (self.reg_feat_faults_idx, {tree.name : { box["name"] : i} })
+                    self.list_of_db_reg_feat_fault_sites.append(fault_site_feat)
+                    self.list_of_fault_sites.append(fault_site_feat)
+        
 
     # Initialize the fault universe for the features of the classifier.
     def get_fault_sites_features(self, classifier: Classifier):
         for f in range(0, len(classifier.trees[0].model_features)):
-            for i in range(0, 64 - self.nabs[f]):
+            for i in range(0, self.Nbits_per_repr - self.nabs[f]):
                 #fault_site = (self.feat_faults_idx, {f["name"] : i})
                 fault_site = (self.feat_faults_idx, {f : i})
                 self.list_of_feature_fault_sites.append(fault_site)
@@ -107,6 +138,12 @@ class FaultCollection:
         logger.info("Printing the list of DBs Fault sites")
         for f in self.list_of_db_fault_sites:
             logger.info(f)
+        logger.info("Printing the list of THD Fault sites")
+        for f in self.list_of_db_thd_fault_sites:
+            logger.info(f)
+        logger.info("Printing the list of Reg Feat Fault sites")
+        for f in self.list_of_db_reg_feat_fault_sites:
+            logger.info(f)
         logger.info("Printing the list of BNs Fault sites")
         for f in self.list_of_bn_fault_sites:
             logger.info(f)
@@ -120,6 +157,12 @@ class FaultCollection:
         logger.info("DBs Faults")
         for f in self.list_of_faults[self.db_faults_idx]:
             logger.info(f)
+        logger.info("THD Faults")
+        for f in self.list_of_faults[self.thd_faults_idx]:
+            logger.info(f)
+        logger.info("Reg Feat Faults")
+        for f in self.list_of_faults[self.reg_feat_faults_idx]:
+            logger.info(f)
         logger.info("BNs Faults")
         for f in self.list_of_faults[self.bn_faults_idx]:
             logger.info(f)
@@ -129,6 +172,8 @@ class FaultCollection:
     # 1 -> sample from the feature faults
     # 2 -> sample from the DBs faults
     # 3 -> sample from the BNs faults
+    # 4 -> sample from the Thds faults
+    # 5 -> sample from the Reg Feat faults
     def sample_faults(self, type_of_faults: str = 0, error_margin = 0.001, confidence_level = 0.95, individual_prob = 0.5):
         logger = logging.getLogger("pyALS-RF")
         logging.info("Sampling faults")
@@ -140,6 +185,10 @@ class FaultCollection:
             fault_sites = self.list_of_db_fault_sites
         elif type_of_faults == 3:
             fault_sites = self.list_of_bn_fault_sites
+        elif type_of_faults == 4:
+            fault_sites = self.list_of_db_thd_fault_sites
+        elif type_of_faults == 5:
+            fault_sites = self.list_of_db_reg_feat_fault_sites
         else:
             logger.error("Unsupported type of fault ! ")
             assert 1 == 0
@@ -151,15 +200,14 @@ class FaultCollection:
         faults = [fault_sites[idx] for idx in faulted_indexes]
         # Get all the fixed values
         fixed_values = self.__sample_fixed_values(faults)
-        # print(len(fault_sites))
-        # print(len(faults))
-        # exit(1)
+        
         # Append in list
         for f, val in tqdm(zip(faults, fixed_values), desc = "Storing sampled fault sites"):
             # f[0] is the fault_type idx while f[1] is the fault.
             self.list_of_faults[f[0]].append(f[1])
             self.list_of_fixed_values[f[0]].append(val)
-            
+        
+
     # Given a list of fault sites (integers) returns the number of faults 
     def __sample_faults(list_of_sites, number_of_faults):
         return random.sample(list_of_sites, number_of_faults)
@@ -171,6 +219,10 @@ class FaultCollection:
                 fixed_values.append(random.sample([0,1], 1)[0])
             elif f[0] == self.db_faults_idx:
                 fixed_values.append(random.sample([False, True], 1)[0])
+            elif f[0] == self.thd_faults_idx:
+                fixed_values.append(random.sample([0, 1], 1)[0])
+            elif f[0] == self.reg_feat_faults_idx:
+                fixed_values.append(random.sample([0, 1], 1)[0])
             elif f[0] == self.bn_faults_idx:
                 fixed_values.append(random.sample([False, True], 1)[0])
         return fixed_values
@@ -250,8 +302,22 @@ class FaultCollection:
         
         with open(f"{out_path}/bns_faults.json5", "w") as f:
             json5.dump(bns_dict, f, indent = 2)
+
         logger.info("Done dumping BNs faults")
-    
+        report_json = {
+            "NroFeatFaults": len(self.list_of_feature_fault_sites),
+            "NroDBsFaults": len(self.list_of_db_fault_sites),
+            "NroBNsFaults": len(self.list_of_bn_fault_sites),
+            "TotalFaultSites": len(self.list_of_feature_fault_sites) + len(self.list_of_db_fault_sites) + len(self.list_of_bn_fault_sites),  
+            "SampledFeatFaults": len(self.list_of_faults[self.feat_faults_idx]),
+            "SampledDBsFaults": len(self.list_of_faults[self.db_faults_idx]),
+            "SampledBNsFaults": len(self.list_of_faults[self.bn_faults_idx]),
+            "TotalSampledFaults": len(self.list_of_faults[self.feat_faults_idx]) + len(self.list_of_faults[self.db_faults_idx]) + len(self.list_of_faults[self.bn_faults_idx])  
+        }
+        out_report_path = f"{out_path}/report.csv"
+        report_df = pd.DataFrame(report_json)
+        report_df.to_csv(out_report_path)
+
 
     def faults_to_json5_list(self, classifier, out_path):
         logger = logging.getLogger("pyALS-RF")
@@ -261,16 +327,18 @@ class FaultCollection:
         list_feature_names = [feat["name"] for feat in classifier.model_features]
         list_tree_names =  [tree.name for tree in classifier.trees]
         list_class_names = [class_name for class_name in classifier.model_classes]
+        
+        # Handling feature faults.
         feat_list = []
         fault_list = self.list_of_faults[self.feat_faults_idx]
         fixed_vals = self.list_of_fixed_values[self.feat_faults_idx]
-
         for f, val in zip(fault_list, fixed_vals):
             feature = list(f.keys())[0]
             bit = f[feature]
             feat_list.append({feature : { bit : val}})
 
         # Generate the dictionary for the output of DBs faults.
+        # Such DBs faults represent the stuck-at fault, for a completely defective DB
         logging.info("Storing DBs faults into json")
         # The dictionary of DBs contains for each tree the set of nodes as 
         # following:  
@@ -281,6 +349,30 @@ class FaultCollection:
             tree_name = list(f.keys())[0]
             node_name = f[tree_name]
             dbs_list.append({tree_name : {node_name : val}})
+        
+        # Generate the dictionary for the output of Threshold Faults
+        logging.info("Storing THDs faults into json")
+        fault_list = self.list_of_faults[self.thd_faults_idx]
+        fixed_vals = self.list_of_fixed_values[self.thd_faults_idx]
+        assert len(fixed_vals) == len(fault_list)
+        thd_list = []
+        for f, val in zip(fault_list, fixed_vals):
+            tree_name = list(f.keys())[0]
+            node_name = list(f[tree_name].keys())[0]
+            bit_idx = f[tree_name][node_name]    
+            thd_list.append({tree_name : {node_name : [bit_idx, val]}})
+        
+        # Generate the dictionary for the output of Reg Feature faults
+        logging.info("Storing THDs faults into json")
+        fault_list = self.list_of_faults[self.reg_feat_faults_idx]
+        fixed_vals = self.list_of_fixed_values[self.reg_feat_faults_idx]
+        assert len(fixed_vals) == len(fault_list)
+        reg_feat_list = []
+        for f, val in zip(fault_list, fixed_vals):
+            tree_name = list(f.keys())[0]
+            node_name = list(f[tree_name].keys())[0]
+            bit_idx = f[tree_name][node_name]    
+            reg_feat_list.append({tree_name : {node_name : [bit_idx, val]}})
 
         # Generate the dictionary for the output of BNs faults
         # For the BNs the fault dictionary is described as following:
@@ -304,10 +396,36 @@ class FaultCollection:
             json5.dump(dbs_list, f, indent = 2)
         logger.info("Done dumping DBs faults")
         
+        with open(f"{out_path}/thd_faults.json5", "w") as f:
+            json5.dump(thd_list, f, indent = 2)
+        logger.info("Done dumping THDs faults")
+
+        with open(f"{out_path}/reg_feat_faults.json5", "w") as f:
+            json5.dump(reg_feat_list, f, indent = 2)
+        logger.info("Done dumping Reg Feat faults")
+
         with open(f"{out_path}/bns_faults.json5", "w") as f:
             json5.dump(bns_list, f, indent = 2)
         logger.info("Done dumping BNs faults") 
-    
+        report_json = {
+            "NroFeatFaults": len(self.list_of_feature_fault_sites),
+            "NroDBsFaults": len(self.list_of_db_fault_sites),
+            "NroThdsFaults": len(self.list_of_db_thd_fault_sites),
+            "NroRegFeatFaults": len(self.list_of_db_reg_feat_fault_sites),
+            "NroBNsFaults": len(self.list_of_bn_fault_sites),
+            "TotalFaultSites": len(self.list_of_feature_fault_sites) + len(self.list_of_db_fault_sites) + len(self.list_of_bn_fault_sites) + len(self.list_of_db_thd_fault_sites) + len(self.list_of_db_reg_feat_fault_sites),  
+            "SampledFeatFaults": len(self.list_of_faults[self.feat_faults_idx]),
+            "SampledDBsFaults": len(self.list_of_faults[self.db_faults_idx]),
+            "SampledThdsFaults": len(self.list_of_faults[self.thd_faults_idx]),
+            "SampledRegFeatFaults": len(self.list_of_faults[self.reg_feat_faults_idx]),
+            "SampledBNsFaults": len(self.list_of_faults[self.bn_faults_idx]),
+            "TotalSampledFaults": len(self.list_of_faults[self.feat_faults_idx]) + len(self.list_of_faults[self.db_faults_idx]) + len(self.list_of_faults[self.bn_faults_idx]) + len(self.list_of_faults[self.thd_faults_idx]) + len(self.list_of_faults[self.reg_feat_faults_idx])
+        }
+        # print(report_json)
+        out_report_path = f"{out_path}/report.csv"
+        report_df = pd.DataFrame(report_json, index=[0])
+        report_df.to_csv(out_report_path, index=False)
+
     """ Computes the number of injected faults using the Leveugle formula.
         number of faults =                      fault_universe_size
                                 -----------------------------------------------------
@@ -322,5 +440,10 @@ class FaultCollection:
         individual_prob : The probability that a member of the fault universe size is malfunctioning (Usually set as 1/2)
     """ 
     def compute_sample_size(fault_universe_size, error_margin, confidence_level, individual_prob):
-        cut_off = norm.ppf(confidence_level) 
-        return int(fault_universe_size / (1 + pow(error_margin,2) * ( (fault_universe_size - 1) / (pow(cut_off,2) * individual_prob * (1 - individual_prob)) ) ))
+        alpha = 1 - confidence_level
+        cut_off = norm.ppf(1 - alpha / 2) 
+        # print(cut_off)
+        sampled = int(fault_universe_size / (1 + pow(error_margin,2) * ( (fault_universe_size - 1) / (pow(cut_off,2) * individual_prob * (1 - individual_prob)) ) ))
+        if sampled > fault_universe_size:
+            return fault_universe_size
+        return sampled
